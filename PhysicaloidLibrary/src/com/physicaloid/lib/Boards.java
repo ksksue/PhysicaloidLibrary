@@ -4,14 +4,14 @@ public enum Boards {
     // Arduino Series
     ARDUINO_UNO                 (1, "auno",ChipTypes.M328P,     UploadProtocols.STK500,  115200, ComProtocols.UART, "Arduino Uno"),
     ARDUINO_DUEMILANOVE_328     (1, "duem",ChipTypes.M328P,     UploadProtocols.STK500,   57600, ComProtocols.UART, "Arduino Duemilanove ATmega328"),
-    ARDUINO_DUEMILANOVE_168     (0, "diec",ChipTypes.M168,      UploadProtocols.STK500,   19200, ComProtocols.UART, "Arduino Diecimila or Duemilanove ATmega168"),
+    ARDUINO_DUEMILANOVE_168     (1, "diec",ChipTypes.M168,      UploadProtocols.STK500,   19200, ComProtocols.UART, "Arduino Diecimila or Duemilanove ATmega168"),
     ARDUINO_NANO_328            (0, "na32",ChipTypes.M328P,     UploadProtocols.STK500,   57600, ComProtocols.UART, "Arduino Nano ATmega328"),
     ARDUINO_NANO_168            (0, "na16",ChipTypes.M168,      UploadProtocols.STK500,   57600, ComProtocols.UART, "Arduino Nano ATmega168"),
     ARDUINO_MEGA_2560_ADK       (1, "mg25",ChipTypes.M2560,     UploadProtocols.STK500V2,115200, ComProtocols.UART, "Arduino Mega 2560 or ADK"),
     ARDUINO_MEGA_1280           (0, "mg16",ChipTypes.M1280,     UploadProtocols.STK500,   57600, ComProtocols.UART, "Arduino Mega (ATmega1280)"),
-    ARDUINO_LEONARD             (0, "leon",ChipTypes.ATMEGA32U4,UploadProtocols.AVR109,   57600, ComProtocols.UART, "Arduino Leonardo"),
-    ARDUINO_ESPLORA             (0, "espl",ChipTypes.ATMEGA32U4,UploadProtocols.AVR109,   57600, ComProtocols.UART, "Arduino Esplora"),
-    ARDUINO_MICRO               (0, "micr",ChipTypes.ATMEGA32U4,UploadProtocols.AVR109,   57600, ComProtocols.UART, "Arduino Micro"),
+//    ARDUINO_LEONARD             (0, "leon",ChipTypes.ATMEGA32U4,UploadProtocols.AVR109,   57600, ComProtocols.UART, "Arduino Leonardo"),
+//    ARDUINO_ESPLORA             (0, "espl",ChipTypes.ATMEGA32U4,UploadProtocols.AVR109,   57600, ComProtocols.UART, "Arduino Esplora"),
+//    ARDUINO_MICRO               (0, "micr",ChipTypes.ATMEGA32U4,UploadProtocols.AVR109,   57600, ComProtocols.UART, "Arduino Micro"),
     ARDUINO_MINI_328            (0, "mn32",ChipTypes.M328P,     UploadProtocols.STK500,   57600, ComProtocols.UART, "Arduino Mini ATmega328"),
     ARDUINO_MINI_168            (0, "mn16",ChipTypes.M168,      UploadProtocols.STK500,   57600, ComProtocols.UART, "Arduino Mini ATmega168"),
     ARDUINO_ETHERNET            (0, "ethe",ChipTypes.M328P,     UploadProtocols.STK500,  115200, ComProtocols.UART, "Arduino Ethernet"),
@@ -29,12 +29,12 @@ public enum Boards {
     ARDUINO_NG_8                (0, "ng08",ChipTypes.M8,        UploadProtocols.STK500,   19200, ComProtocols.UART, "Arduino NG or older ATmega8"),
 
     // mbed Series
-    MBED_LPC1768                (0, "mbd1",ChipTypes.MBED_LPC1768,      UploadProtocols.USBMEM,   0, ComProtocols.UART, "mbed LPC1768"),
-    MBED_LPC11U24               (0, "mbd2",ChipTypes.MBED_LPC11U24,     UploadProtocols.USBMEM,   0, ComProtocols.UART, "mbed LPC11U24"),
-    MBED_FRDM_KL25Z             (0, "mbd3",ChipTypes.MBED_FRDM_KL25Z,   UploadProtocols.USBMEM,   0, ComProtocols.UART, "mbed FRDM-KL25Z"),
+//    MBED_LPC1768                (0, "mbd1",ChipTypes.MBED_LPC1768,      UploadProtocols.USBMEM,   0, ComProtocols.UART, "mbed LPC1768"),
+//    MBED_LPC11U24               (0, "mbd2",ChipTypes.MBED_LPC11U24,     UploadProtocols.USBMEM,   0, ComProtocols.UART, "mbed LPC11U24"),
+//    MBED_FRDM_KL25Z             (0, "mbd3",ChipTypes.MBED_FRDM_KL25Z,   UploadProtocols.USBMEM,   0, ComProtocols.UART, "mbed FRDM-KL25Z"),
 
     // FPGA Series
-    PHYSICALOID_FPGA_ONE        (0, "fp01",ChipTypes.PHYSICALOID_CYCLONE,  UploadProtocols.ALTERA_FPGA_RBF, 0, ComProtocols.USYNC_FIFO, "Physicaloid FPGA Board"),
+//    PHYSICALOID_FPGA_ONE        (0, "fp01",ChipTypes.PHYSICALOID_CYCLONE,  UploadProtocols.ALTERA_FPGA_RBF, 0, ComProtocols.USYNC_FIFO, "Physicaloid FPGA Board"),
 
     NONE                        (0, "",0,0,0,0,"");
 
