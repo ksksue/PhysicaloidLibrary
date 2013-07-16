@@ -1,5 +1,5 @@
 # built application files
-*.apk
+#*.apk
 *.ap_
 
 # files for the dex VM
@@ -16,5 +16,5 @@ gen/
 local.properties
 
 # Eclipse project files
-.classpath
-.project
+#.classpath
+#.project
