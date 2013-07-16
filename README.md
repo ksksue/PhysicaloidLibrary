@@ -1,4 +1,4 @@
 PhysicaloidLibrary
 ==================
 
-Android library for communicating with Physical computer(Arduino)
+Android library for communicating with a Physical computing board (e.g.Arduino, mbed)
