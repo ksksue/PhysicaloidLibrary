@@ -26,18 +26,18 @@ public class RingBuffer{
 
     private int mRingBufSize;
     private byte[] mRingBuf;
-    private int mAddOffset;     // top of data index
-    private int mGetOffset;     // tail of data index
+    private int mAddIndex;     // top of data index
+    private int mGetIndex;     // tail of data index
 
     /**
      * Ring buffer
      * @param bufferSize buffer size. It needs enough size e.g.1024
      */
     public RingBuffer(int bufferSize) {
-        mRingBufSize = bufferSize;
+        mRingBufSize = bufferSize+1;
         mRingBuf = new byte[mRingBufSize];
-        mAddOffset = 0;
-        mGetOffset = 0;
+        mAddIndex = 0;
+        mGetIndex = 0;
     }
 
     /**
@@ -45,7 +45,7 @@ public class RingBuffer{
      * @return ring buffer size
      */
     public int getRingBufferSize() {
-        return mRingBufSize;
+        return mRingBufSize-1;
     }
 
     /**
@@ -53,10 +53,10 @@ public class RingBuffer{
      * @return buffered length
      */
     public int getBufferdLength() {
-        if(mAddOffset >= mGetOffset) {
-            return mAddOffset - mGetOffset;
+        if(mAddIndex >= mGetIndex) {
+            return mAddIndex - mGetIndex;
         } else {
-            return mAddOffset + (mRingBufSize - mGetOffset);
+            return mAddIndex + (mRingBufSize - mGetIndex);
         }
     }
 
@@ -68,44 +68,50 @@ public class RingBuffer{
      */
     public synchronized int add(byte[] buf, int length) {
         int addLen = length;
-        if((mAddOffset < mGetOffset) // storeがloadを追い抜く場合
-                && (mAddOffset + length) >= mGetOffset) {
-            addLen = mGetOffset - mAddOffset;
+
+        if(mAddIndex > mGetIndex) {
+            if((mAddIndex + length) >= mRingBufSize) {                          // addした結果1周をまたぐ場合
+                if((mRingBufSize - mAddIndex) + (mGetIndex - 1) < length ) {    // 1周をまたいでなおlength以上になる場合
+                    addLen = (mRingBufSize - mAddIndex) + (mGetIndex-1);        // 追い抜かないサイズに修正
+                }
+            }
+        } else if(mAddIndex < mGetIndex){ // 1周をまたいでいる場合
+            if((mGetIndex - 1) - mAddIndex < length) {
+                addLen = (mGetIndex - 1) - mAddIndex;
+            }
         }
 
         if(buf.length < addLen) {
             addLen = buf.length;
         }
 
-        if((mAddOffset+addLen) > (mRingBufSize-1)) { // storeがバッファ終端をまたぐ場合
-            int remain = mAddOffset + addLen - mRingBufSize;
+        if((mAddIndex+addLen) >= mRingBufSize) { // storeがバッファ終端をまたぐ場合
+            int remain = mAddIndex + addLen - mRingBufSize;
             int copyLen = addLen-remain;
             if(copyLen != 0) {
-                System.arraycopy(buf, 0, mRingBuf, mAddOffset, copyLen);
+                System.arraycopy(buf, 0, mRingBuf, mAddIndex, copyLen);
+                if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : copy buf[0:"+(copyLen-1)+"] to mRingBuf["+mAddIndex+":"+(mAddIndex+copyLen-1)+"]"); }
             }
 
-            if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : copy buf[0:"+(copyLen-1)+"] to mRingBuf["+mAddOffset+":"+(mAddOffset+copyLen-1)+"]"); }
+            mAddIndex = 0;
 
-            mAddOffset = 0;
-
-            if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : addOffset = "+mAddOffset+", getOffset = "+mGetOffset); }
-
-            System.arraycopy(buf, copyLen, mRingBuf, mAddOffset, remain);
-            mAddOffset = remain;
-
-            if(DEBUG_SHOW_ADD){
-                Log.d(TAG,"add("+length+") : copy buf["+(copyLen)+":"+(addLen-1)+"] to mRingBuf[0:"+(remain-1)+"]");
-                Log.d(TAG,"add("+length+") : addOffset = "+mAddOffset+", getOffset = "+mGetOffset);
+            if(remain != 0) {
+                System.arraycopy(buf, copyLen, mRingBuf, mAddIndex, remain);
+                if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : copy buf["+(copyLen)+":"+(addLen-1)+"] to mRingBuf[0:"+(remain-1)+"]"); }
+                mAddIndex = remain;
             }
+
+            if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : addOffset = "+mAddIndex+", getOffset = "+mGetIndex); }
+
             return addLen;
         } else {
-            System.arraycopy(buf, 0, mRingBuf, mAddOffset, addLen);
+            System.arraycopy(buf, 0, mRingBuf, mAddIndex, addLen);
 
-            if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : copy buf[0:"+(addLen-1)+"] to mRingBuf["+mAddOffset+":"+(mAddOffset+addLen-1)+"]"); }
+            if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : copy buf[0:"+(addLen-1)+"] to mRingBuf["+mAddIndex+":"+(mAddIndex+addLen-1)+"]"); }
 
-            mAddOffset += addLen;
+            mAddIndex += addLen;
 
-            if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : addOffset = "+mAddOffset+", getOffset = "+mGetOffset);}
+            if(DEBUG_SHOW_ADD){ Log.d(TAG,"add("+length+") : addOffset = "+mAddIndex+", getOffset = "+mGetIndex);}
 
             return addLen;
         }
@@ -119,48 +125,48 @@ public class RingBuffer{
      */
     public synchronized int get(byte[] buf, int length) {
         int getLen = length;
-        if(mAddOffset == mGetOffset) {
+        if(mAddIndex == mGetIndex) {
             return 0;
-        }
-
-        if((mGetOffset < mAddOffset) // storeがloadを追い抜く場合
-                && (mGetOffset + length) > mAddOffset) {
-            getLen = mAddOffset - mGetOffset;
+        } else if(mGetIndex < mAddIndex) { // 通常
+            if(mAddIndex - mGetIndex < length) {  // get要求サイズがバッファされているサイズより大きい場合
+                getLen = mAddIndex - mGetIndex;     // 今バッファされているサイズを返す
+            }
+        } else {// インデックスが1周をまたいでいる場合
+            if(mAddIndex + (mRingBufSize-mGetIndex) < length) {     // get要求サイズがバッファされているサイズより大きい場合
+                getLen = mAddIndex + (mRingBufSize - mGetIndex);    // 今バッファされているサイズを返す
+            }
         }
 
         if(buf.length < getLen) {
             getLen = buf.length;
         }
 
-        if((mGetOffset+getLen) > (mRingBufSize-1)) {
-            int remain = mGetOffset + getLen - mRingBufSize;
+        if((mGetIndex+getLen) >= mRingBufSize) {
+            int remain = mGetIndex + getLen - mRingBufSize;
             int copyLen = getLen - remain;
             if( copyLen != 0) {
-                System.arraycopy(mRingBuf, mGetOffset, buf, 0, copyLen);
+                System.arraycopy(mRingBuf, mGetIndex, buf, 0, copyLen);
+                if(DEBUG_SHOW_GET){ Log.d(TAG,"get("+length+") : copy mRingBuf["+mGetIndex+":"+(mGetIndex+copyLen-1)+"] to buf[0:"+(copyLen-1)+"]"); }
             }
 
-            if(DEBUG_SHOW_GET){ Log.d(TAG,"get("+length+") : copy mRingBuf["+mGetOffset+":"+(mGetOffset+copyLen-1)+"] to buf[0:"+(copyLen-1)+"]"); }
+            mGetIndex = 0;
 
-            mGetOffset = 0;
-
-            if(DEBUG_SHOW_GET){  Log.d(TAG,"get("+length+") : addOffset = "+mAddOffset+", getOffset = "+mGetOffset); }
-
-            System.arraycopy(mRingBuf, mAddOffset, buf, copyLen, remain);
-            mGetOffset = remain;
-
-            if(DEBUG_SHOW_GET){
-                Log.d(TAG,"get("+length+") : copy mRingBuf[0:"+(remain-1)+"] to buf["+copyLen+":"+(remain-1)+"]");
-                Log.d(TAG,"get("+length+") : addOffset = "+mAddOffset+", getOffset = "+mGetOffset);
+            if(remain !=0) {
+                System.arraycopy(mRingBuf, mGetIndex, buf, copyLen, remain);
+                if(DEBUG_SHOW_GET){ Log.d(TAG,"get("+length+") : copy mRingBuf[0:"+(remain-1)+"] to buf["+copyLen+":"+(remain-1)+"]"); }
+                mGetIndex = remain;
             }
+
+            if(DEBUG_SHOW_GET){  Log.d(TAG,"get("+length+") : addOffset = "+mAddIndex+", getOffset = "+mGetIndex); }
             return getLen;
         } else {
-            System.arraycopy(mRingBuf, mGetOffset, buf, 0, getLen);
+            System.arraycopy(mRingBuf, mGetIndex, buf, 0, getLen);
 
-            if(DEBUG_SHOW_GET){ Log.d(TAG,"get("+length+") : copy mRingBuf["+mGetOffset+":"+(mGetOffset+getLen-1)+"] to buf[0:"+(getLen-1)+"]");}
+            if(DEBUG_SHOW_GET){ Log.d(TAG,"get("+length+") : copy mRingBuf["+mGetIndex+":"+(mGetIndex+getLen-1)+"] to buf[0:"+(getLen-1)+"]");}
 
-            mGetOffset += getLen;
+            mGetIndex += getLen;
 
-            if(DEBUG_SHOW_GET){ Log.d(TAG,"get("+length+") : addOffset = "+mAddOffset+", getOffset = "+mGetOffset); }
+            if(DEBUG_SHOW_GET){ Log.d(TAG,"get("+length+") : addOffset = "+mAddIndex+", getOffset = "+mGetIndex); }
 
             return getLen;
         }
@@ -171,8 +177,8 @@ public class RingBuffer{
      * Clear ring buffer
      */
     public synchronized void clear() {
-        mAddOffset = 0;
-        mGetOffset = 0;
+        mAddIndex = 0;
+        mGetIndex = 0;
     }
 
 }

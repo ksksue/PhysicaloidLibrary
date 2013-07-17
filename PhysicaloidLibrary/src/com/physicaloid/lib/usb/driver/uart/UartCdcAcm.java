@@ -74,6 +74,7 @@ public class UartCdcAcm extends SerialCommunicator{
             mEndpointOut    = mUsbConnetionManager.getEndpointOut();
             if(!init()) { return false; }
             if(!setBaudrate(DEFAULT_BAUDRATE)) {return false;}
+            mBuffer.clear();
             startRead();
             return true;
         }
