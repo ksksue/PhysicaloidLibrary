@@ -191,6 +191,7 @@ public class Physicaloid {
      * @param settings
      */
     void setConfig(UartConfig settings) throws RuntimeException{
-        
+        if(mSerial == null) return;
+        mSerial.setUartConfig(settings);
     }
 }
