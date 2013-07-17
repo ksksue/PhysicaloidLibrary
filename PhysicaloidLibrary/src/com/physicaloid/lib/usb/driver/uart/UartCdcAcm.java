@@ -204,7 +204,7 @@ public class UartCdcAcm extends SerialCommunicator{
      * Initializes CDC communication
      * @return true : successful, false : fail
      */
-    public boolean init() {
+    private boolean init() {
         if(mConnection == null) return false;
         int ret = mConnection.controlTransfer(0x21, 0x22, 0x00, 0, null, 0, 0); // init CDC
         if(ret < 0) { return false; }

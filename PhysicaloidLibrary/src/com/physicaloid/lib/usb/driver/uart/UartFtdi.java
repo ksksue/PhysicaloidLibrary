@@ -60,7 +60,6 @@ public class UartFtdi extends SerialCommunicator {
     }
 
 
-    @Override
     public boolean init() {
         // TODO Auto-generated method stub
         return false;

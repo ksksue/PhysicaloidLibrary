@@ -55,12 +55,6 @@ public abstract class SerialCommunicator {
     abstract public int write(byte[] buf, int size);
 
     /**
-     * Initializes communication
-     * @return true : successful, false : fail
-     */
-    abstract public boolean init();
-
-    /**
      * Sets Uart configurations
      * @param config configurations
      * @return true : successful, false : fail
