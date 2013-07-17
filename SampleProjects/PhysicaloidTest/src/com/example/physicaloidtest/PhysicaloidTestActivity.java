@@ -1,5 +1,6 @@
 package com.example.physicaloidtest;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,9 +14,11 @@ import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid;
 import com.physicaloid.lib.Physicaloid.UploadCallBack;
 import com.physicaloid.lib.programmer.avr.UploadErrors;
+import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 
 public class PhysicaloidTestActivity extends Activity {
 
+    @SuppressLint("SdCardPath")
     private static final String UPLOAD_FILE = "/sdcard/arduino/serialtest.uno.hex";
     Physicaloid mPhysicaloid;
 
@@ -23,6 +26,7 @@ public class PhysicaloidTestActivity extends Activity {
     Button btClose;
     Button btWrite;
     Button btRead;
+    Button btReadCallback;
     Button btUpload;
     EditText etWrite;
     TextView tvRead;
@@ -32,13 +36,14 @@ public class PhysicaloidTestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_physicaloid_test);
 
-        btOpen      = (Button) findViewById(R.id.btOpen);
-        btClose     = (Button) findViewById(R.id.btClose);
-        btWrite     = (Button) findViewById(R.id.btWrite);
-        btRead      = (Button) findViewById(R.id.btRead);
-        btUpload    = (Button) findViewById(R.id.btUpload);
-        etWrite     = (EditText) findViewById(R.id.etWrite);
-        tvRead      = (TextView) findViewById(R.id.tvRead);
+        btOpen          = (Button) findViewById(R.id.btOpen);
+        btClose         = (Button) findViewById(R.id.btClose);
+        btWrite         = (Button) findViewById(R.id.btWrite);
+        btRead          = (Button) findViewById(R.id.btRead);
+        btReadCallback  = (Button) findViewById(R.id.btReadCallback);
+        btUpload        = (Button) findViewById(R.id.btUpload);
+        etWrite         = (EditText) findViewById(R.id.etWrite);
+        tvRead          = (TextView) findViewById(R.id.tvRead);
 
         updateViews(false);
 
@@ -80,6 +85,26 @@ public class PhysicaloidTestActivity extends Activity {
         tvRead.append(Html.fromHtml("<font color=red>"+str+"</font>"));
     }
 
+    private boolean readCallbackOn = false;
+    public void onClickReadCallback(View v) {
+        if(readCallbackOn) {
+            mPhysicaloid.clearReadListener();
+            btReadCallback.setText("ReadCallbackOff");
+            btRead.setEnabled(true);
+            readCallbackOn = false;
+        } else {
+            mPhysicaloid.addReadListener(new ReadLisener() {
+                @Override
+                public void onRead(byte[] buf, int size) {
+                    tvAppend(tvRead, Html.fromHtml("<font color=blue>"+new String(buf)+"</font>"));
+                }
+            });
+            btReadCallback.setText("ReadCallbackOn");
+            btRead.setEnabled(false);
+            readCallbackOn = true;
+        }
+    }
+
     public void onClickUpload(View v) {
         mPhysicaloid.upload(Boards.ARDUINO_UNO, UPLOAD_FILE,
                 mUploadCallback);
@@ -118,25 +143,36 @@ public class PhysicaloidTestActivity extends Activity {
             btClose.setEnabled(true);
             btWrite.setEnabled(true);
             btRead.setEnabled(true);
+            btReadCallback.setEnabled(true);
             etWrite.setEnabled(true);
         } else {
             btOpen.setEnabled(true);
             btClose.setEnabled(false);
             btWrite.setEnabled(false);
             btRead.setEnabled(false);
+            btReadCallback.setEnabled(false);
             etWrite.setEnabled(false);
         }
     }
 
     Handler mHandler = new Handler();
-    private void tvAppend(TextView tv, String text) {
+    private void tvAppend(TextView tv, CharSequence text) {
         final TextView ftv = tv;
-        final String ftext = text;
+        final CharSequence ftext = text;
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 ftv.append(ftext);
             }
         });
+    }
+
+
+    private String toHexStr(byte[] b, int length) {
+        String str="";
+        for(int i=0; i<length; i++) {
+            str += String.format("%02x ", b[i]);
+        }
+        return str;
     }
 }

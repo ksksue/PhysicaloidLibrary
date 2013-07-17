@@ -55,16 +55,6 @@
         android:onClick="onClickRead"
         android:text="Read" />
 
-    <Button
-        android:id="@+id/btUpload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/btRead"
-        android:layout_alignBottom="@+id/btRead"
-        android:layout_alignLeft="@+id/btClose"
-        android:onClick="onClickUpload"
-        android:text="Upload" />
-
     <ScrollView
         android:id="@+id/scrollView1"
         android:layout_width="wrap_content"
@@ -85,5 +75,24 @@
                 android:layout_below="@+id/btRead" />
         </LinearLayout>
     </ScrollView>
+
+    <Button
+        android:id="@+id/btUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/btClose"
+        android:onClick="onClickUpload"
+        android:text="Upload" />
+
+    <Button
+        android:id="@+id/btReadCallback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btRead"
+        android:layout_alignBottom="@+id/btRead"
+        android:layout_toRightOf="@+id/btRead"
+        android:onClick="onClickReadCallback"
+        android:text="ReadCallbackOff" />
 
 </RelativeLayout>
