@@ -162,4 +162,11 @@ public class UartFtdi extends SerialCommunicator {
         
     }
 
+
+    @Override
+    public void clearBuffer() {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

@@ -149,4 +149,9 @@ public abstract class SerialCommunicator {
      * Clears read listener
      */
     abstract public void clearReadListener();
+
+    /**
+     * Clears read buffer
+     */
+    abstract public void clearBuffer();
 }

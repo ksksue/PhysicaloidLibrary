@@ -324,6 +324,11 @@ public class UartCdcAcm extends SerialCommunicator{
         return mUartConfig.rtsOn;
     }
 
+    @Override
+    public void clearBuffer() {
+        mBuffer.clear();
+    }
+
     //////////////////////////////////////////////////////////
     // Listener for reading uart
     //////////////////////////////////////////////////////////

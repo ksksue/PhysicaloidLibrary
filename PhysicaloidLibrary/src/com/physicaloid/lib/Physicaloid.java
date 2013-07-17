@@ -175,13 +175,21 @@ public class Physicaloid {
                     }
                 } else {                // if already open
                     synchronized (mSerial) {
-                        tmpUartConfig = mSerial.getUartConfig();
+                        UartConfig origUartConfig = mSerial.getUartConfig();
+                        tmpUartConfig.baudrate = origUartConfig.baudrate;
+                        tmpUartConfig.dataBits = origUartConfig.dataBits;
+                        tmpUartConfig.stopBits = origUartConfig.stopBits;
+                        tmpUartConfig.parity = origUartConfig.parity;
+                        tmpUartConfig.dtrOn = origUartConfig.dtrOn;
+                        tmpUartConfig.rtsOn = origUartConfig.rtsOn;
                     }
                 }
 
                 synchronized (mSerial) {
+                    mSerial.clearBuffer();
                     mUploader.upload(mFilePath, mBoard, mSerial, mCallBack);
                     mSerial.setUartConfig(tmpUartConfig); // recover if already open
+                    mSerial.clearBuffer();
                     if(cleanAfter) {
                         mSerial.close();
                         mSerial = null;
