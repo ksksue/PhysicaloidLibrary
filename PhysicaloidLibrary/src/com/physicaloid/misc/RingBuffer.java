@@ -26,23 +26,33 @@ public class RingBuffer{
 
     private int mRingBufSize;
     private byte[] mRingBuf;
-    private int mAddOffset; // データの先頭
-    private int mGetOffset; // データの後尾
+    private int mAddOffset;     // top of data index
+    private int mGetOffset;     // tail of data index
 
-    // バッファの位置が追い越されないよう、十分なサイズをとること
+    /**
+     * Ring buffer
+     * @param bufferSize buffer size. It needs enough size e.g.1024
+     */
     public RingBuffer(int bufferSize) {
         mRingBufSize = bufferSize;
         mRingBuf = new byte[mRingBufSize];
         mAddOffset = 0;
         mGetOffset = 0;
-        
     }
 
+    /**
+     * Gets ring buffer size
+     * @return ring buffer size
+     */
     public int getRingBufferSize() {
         return mRingBufSize;
     }
 
-    public int getBufLength() {
+    /**
+     * Gets buffered length
+     * @return buffered length
+     */
+    public int getBufferdLength() {
         if(mAddOffset >= mGetOffset) {
             return mAddOffset - mGetOffset;
         } else {
@@ -50,6 +60,12 @@ public class RingBuffer{
         }
     }
 
+    /**
+     * Adds byte array to ring buffer
+     * @param buf byte array
+     * @param length added length
+     * @return actually added length
+     */
     public synchronized int add(byte[] buf, int length) {
         int addLen = length;
         if((mAddOffset < mGetOffset) // storeがloadを追い抜く場合
@@ -95,6 +111,12 @@ public class RingBuffer{
         }
     }
 
+    /**
+     * Gets ring buffer to byte array
+     * @param buf byte array
+     * @param length gotten length
+     * @return actually gotten length
+     */
     public synchronized int get(byte[] buf, int length) {
         int getLen = length;
         if(mAddOffset == mGetOffset) {
@@ -145,6 +167,9 @@ public class RingBuffer{
     }
 
 
+    /**
+     * Clear ring buffer
+     */
     public synchronized void clear() {
         mAddOffset = 0;
         mGetOffset = 0;
