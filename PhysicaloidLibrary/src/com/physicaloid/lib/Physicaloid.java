@@ -23,6 +23,7 @@ import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.framework.Uploader;
 import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
+import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 
 public class Physicaloid {
 
@@ -64,7 +65,7 @@ public class Physicaloid {
 
     /**
      * Closes a device.
-     * @return
+     * @return true : successful , false : fail
      * @throws RuntimeException
      */
     public boolean close() throws RuntimeException {
@@ -85,6 +86,32 @@ public class Physicaloid {
         if(mSerial == null) return 0;
         synchronized (mSerial) {
             return mSerial.read(buf, size);
+        }
+    }
+
+    /**
+     * Adds read listener
+     * @param listener ReadListener
+     * @return true : successful , false : fail
+     * @throws RuntimeException
+     */
+    public boolean addReadListener(ReadLisener listener) throws RuntimeException {
+        if(mSerial == null) return false;
+        if(listener == null) return false;
+        synchronized (mSerial) {
+            mSerial.addReadListener(listener);
+        }
+        return true;
+    }
+
+    /**
+     * Clears read listener
+     * @throws RuntimeException
+     */
+    public void clearReadListener() throws RuntimeException {
+        if(mSerial == null) return;
+        synchronized (mSerial) {
+            mSerial.clearReadListener();
         }
     }
 
@@ -192,6 +219,8 @@ public class Physicaloid {
      */
     void setConfig(UartConfig settings) throws RuntimeException{
         if(mSerial == null) return;
-        mSerial.setUartConfig(settings);
+        synchronized (mSerial) {
+            mSerial.setUartConfig(settings);
+        }
     }
 }

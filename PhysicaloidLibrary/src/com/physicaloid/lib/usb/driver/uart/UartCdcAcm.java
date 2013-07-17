@@ -33,7 +33,7 @@ import com.physicaloid.misc.RingBuffer;
 public class UartCdcAcm extends SerialCommunicator{
     private static final String TAG = UartCdcAcm.class.getSimpleName();
 
-    private static final boolean DEBUG_SHOW = true;
+    private static final boolean DEBUG_SHOW = false;
     private static final int DEFAULT_BAUDRATE = 9600;
 
     private UsbCdcConnection mUsbConnetionManager;
@@ -146,7 +146,7 @@ public class UartCdcAcm extends SerialCommunicator{
 
                 if (len > 0) {
                     mBuffer.add(rbuf, len);
-                    onRead(len);
+                    onRead(rbuf, len);
                 }
 
                 if (mReadThreadStop) {
@@ -327,10 +327,10 @@ public class UartCdcAcm extends SerialCommunicator{
     //////////////////////////////////////////////////////////
     // Listener for reading uart
     //////////////////////////////////////////////////////////
-    private List<UartReadLisener> uartReadListenerList
-        = new ArrayList<UartReadLisener>();
+    private List<ReadLisener> uartReadListenerList
+        = new ArrayList<ReadLisener>();
 
-    public void addReadListener(UartReadLisener listener) {
+    public void addReadListener(ReadLisener listener) {
         uartReadListenerList.add(listener);
     }
 
@@ -338,10 +338,13 @@ public class UartCdcAcm extends SerialCommunicator{
         uartReadListenerList.clear();
     }
 
-    private void onRead(int size) {
-        for (UartReadLisener listener: uartReadListenerList) {
-            listener.onRead(size);
+    private boolean onRead(byte[] buf, int size) {
+        boolean ret = false;
+        for (ReadLisener listener: uartReadListenerList) {
+            listener.onRead(buf, size);
+            ret = true;
         }
+        return ret;
     }
     //////////////////////////////////////////////////////////
 

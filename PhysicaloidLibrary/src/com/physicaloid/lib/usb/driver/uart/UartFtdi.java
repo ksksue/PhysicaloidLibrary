@@ -149,4 +149,18 @@ public class UartFtdi extends SerialCommunicator {
         return false;
     }
 
+
+    @Override
+    public void addReadListener(ReadLisener listener) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    @Override
+    public void clearReadListener() {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

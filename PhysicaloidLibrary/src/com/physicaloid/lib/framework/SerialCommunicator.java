@@ -17,6 +17,7 @@
 package com.physicaloid.lib.framework;
 
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
+import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 
 import android.content.Context;
 
@@ -143,4 +144,15 @@ public abstract class SerialCommunicator {
      * @reutrn true then RTS on
      */
     abstract public boolean getRts();
+
+    /**
+     * Adds read listener
+     * @param listener ReadListener
+     */
+    abstract public void addReadListener(ReadLisener listener);
+
+    /**
+     * Clears read listener
+     */
+    abstract public void clearReadListener();
 }

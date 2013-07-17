@@ -21,8 +21,8 @@ import android.util.Log;
 public class RingBuffer{
     private static final String TAG = RingBuffer.class.getSimpleName();
 
-    private static final boolean DEBUG_SHOW_ADD = true;
-    private static final boolean DEBUG_SHOW_GET = true;
+    private static final boolean DEBUG_SHOW_ADD = false;
+    private static final boolean DEBUG_SHOW_GET = false;
 
     private int mRingBufSize;
     private byte[] mRingBuf;

@@ -16,6 +16,6 @@
 
 package com.physicaloid.lib.usb.driver.uart;
 
-public interface UartReadLisener {
-    public void onRead(int size);
+public interface ReadLisener {
+    public void onRead(byte[] buf, int size);
 }
