@@ -26,26 +26,6 @@
         android:onClick="onClickClose"
         android:text="Close" />
 
-    <EditText
-        android:id="@+id/etWrite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/btOpen"
-        android:ems="10" >
-
-        <requestFocus />
-    </EditText>
-
-    <Button
-        android:id="@+id/btWrite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/etWrite"
-        android:layout_toRightOf="@+id/etWrite"
-        android:onClick="onClickWrite"
-        android:text="Write" />
-
     <Button
         android:id="@+id/btRead"
         android:layout_width="wrap_content"
@@ -59,7 +39,9 @@
         android:id="@+id/scrollView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/btRead" >
 
         <LinearLayout
@@ -77,15 +59,6 @@
     </ScrollView>
 
     <Button
-        android:id="@+id/btUpload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/btClose"
-        android:onClick="onClickUpload"
-        android:text="Upload" />
-
-    <Button
         android:id="@+id/btReadCallback"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -94,5 +67,46 @@
         android:layout_toRightOf="@+id/btRead"
         android:onClick="onClickReadCallback"
         android:text="ReadCallbackOff" />
+
+    <EditText
+        android:id="@+id/etWrite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/btUploadAsset"
+        android:layout_toLeftOf="@+id/btWrite"
+        android:ems="10" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/btUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/btOpen"
+        android:onClick="onClickUpload"
+        android:text="Upload" />
+
+    <Button
+        android:id="@+id/btUploadAsset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btUpload"
+        android:layout_alignBottom="@+id/btUpload"
+        android:layout_toRightOf="@+id/btUpload"
+        android:onClick="onClickUploadAsset"
+        android:text="UploadAsset" />
+
+    <Button
+        android:id="@+id/btWrite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/etWrite"
+        android:layout_alignBottom="@+id/etWrite"
+        android:layout_alignParentRight="true"
+        android:onClick="onClickWrite"
+        android:text="Write" />
 
 </RelativeLayout>

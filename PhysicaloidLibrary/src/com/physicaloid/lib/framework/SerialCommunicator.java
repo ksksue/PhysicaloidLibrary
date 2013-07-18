@@ -55,6 +55,12 @@ public abstract class SerialCommunicator {
     abstract public int write(byte[] buf, int size);
 
     /**
+     * Checks device is opened
+     * @return true : opened, false : not opened
+     */
+    abstract public boolean isOpened();
+
+    /**
      * Sets Uart configurations
      * @param config configurations
      * @return true : successful, false : fail

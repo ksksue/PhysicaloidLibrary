@@ -1,10 +1,13 @@
 package com.example.physicaloidtest;
 
+import java.io.IOException;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,9 +21,11 @@ import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 
 public class PhysicaloidTestActivity extends Activity {
+    static final String TAG = PhysicaloidTestActivity.class.getSimpleName();
 
     @SuppressLint("SdCardPath")
     private static final String UPLOAD_FILE = "/sdcard/arduino/serialtest.uno.hex";
+    private static final String ASSET_FILE_NAME = "Blink.uno.hex";
     Physicaloid mPhysicaloid;
 
     Button btOpen;
@@ -115,6 +120,16 @@ public class PhysicaloidTestActivity extends Activity {
                 mUploadCallback);
     }
 
+    public void onClickUploadAsset(View v) {
+        try {
+            mPhysicaloid.upload(Boards.ARDUINO_UNO, getResources().getAssets().open(ASSET_FILE_NAME), mUploadCallback);
+        } catch (RuntimeException e) {
+            Log.e(TAG, e.toString());
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+        }
+    }
+
     UploadCallBack mUploadCallback = new UploadCallBack() {
         
         @Override
@@ -173,6 +188,7 @@ public class PhysicaloidTestActivity extends Activity {
     }
 
 
+    @SuppressWarnings("unused")
     private String toHexStr(byte[] b, int length) {
         String str="";
         for(int i=0; i<length; i++) {

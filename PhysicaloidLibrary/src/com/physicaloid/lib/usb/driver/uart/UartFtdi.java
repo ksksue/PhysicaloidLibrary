@@ -67,6 +67,13 @@ public class UartFtdi extends SerialCommunicator {
 
 
     @Override
+    public boolean isOpened() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+
+    @Override
     public boolean setBaudrate(int baudrate) {
         // TODO Auto-generated method stub
         return false;

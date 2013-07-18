@@ -50,11 +50,14 @@ public class UartCdcAcm extends SerialCommunicator{
     private UsbEndpoint mEndpointIn;
     private UsbEndpoint mEndpointOut;
 
+    private boolean isOpened;
+
     public UartCdcAcm(Context context) {
         super(context);
         mUsbConnetionManager = new UsbCdcConnection(context);
         mUartConfig = new UartConfig();
         mBuffer = new RingBuffer(RING_BUFFER_SIZE);
+        isOpened = false;
     }
 
     @Override
@@ -76,6 +79,7 @@ public class UartCdcAcm extends SerialCommunicator{
             if(!setBaudrate(DEFAULT_BAUDRATE)) {return false;}
             mBuffer.clear();
             startRead();
+            isOpened = true;
             return true;
         }
         return false;
@@ -84,6 +88,7 @@ public class UartCdcAcm extends SerialCommunicator{
     @Override
     public boolean close() {
         stopRead();
+        isOpened = false;
         return mUsbConnetionManager.close();
     }
 
@@ -209,6 +214,11 @@ public class UartCdcAcm extends SerialCommunicator{
         int ret = mConnection.controlTransfer(0x21, 0x22, 0x00, 0, null, 0, 0); // init CDC
         if(ret < 0) { return false; }
         return true;
+    }
+
+    @Override
+    public boolean isOpened() {
+        return isOpened;
     }
 
     /**

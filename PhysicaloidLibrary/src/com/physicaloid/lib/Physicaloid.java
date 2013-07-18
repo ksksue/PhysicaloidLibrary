@@ -16,29 +16,37 @@
 
 package com.physicaloid.lib;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+
 import android.content.Context;
+import android.os.Handler;
+import android.util.Log;
 
 import com.physicaloid.lib.framework.AutoCommunicator;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.framework.Uploader;
 import com.physicaloid.lib.programmer.avr.UploadErrors;
-import com.physicaloid.lib.usb.driver.uart.UartConfig;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
+import com.physicaloid.lib.usb.driver.uart.UartConfig;
 
 public class Physicaloid {
+    private static final boolean DEBUG_SHOW = true;
+    private static final String TAG = Physicaloid.class.getSimpleName();
 
-    Context mContext;
-    Boards mBoard;
+    private Context mContext;
+    private Boards mBoard;
 
-    SerialCommunicator mSerial;
-    Uploader mUploader;
+    private SerialCommunicator mSerial;
+    private Uploader mUploader;
 
-    UploadCallBack mCallBack;   // callback on program() method
-    String mFilePath;           // file path on program() method
+    private UploadCallBack mCallBack;
+    private InputStream mFileStream;
 
-    static final Object LOCK = new Object();
-    static final Object LOCK_WRITE = new Object();
-    static final Object LOCK_READ = new Object();
+    private static final Object LOCK = new Object();
+    private static final Object LOCK_WRITE = new Object();
+    private static final Object LOCK_READ = new Object();
 
     public Physicaloid(Context context) {
         this.mContext = context;
@@ -158,17 +166,62 @@ public class Physicaloid {
     /**
      * Uploads a binary file to a device on background process.
      * @param board board profile e.g. Boards.ARDUINO_UNO
-     * @param filePath a binary file path e.g. /sdcard/arduino/Blink.hex
+     * @param filePath a binary file path e.g. /sdcard/arduino/Blink.uno.hex
      * @param callback
-     * @return true: success, false: fail
      * @throws RuntimeException
      */
     public void upload(Boards board, String filePath, UploadCallBack callback) throws RuntimeException {
+        if(filePath == null) {
+            if(callback != null){ callback.onError(UploadErrors.FILE_OPEN); }
+            return;
+        }
 
+        File file = new File(filePath);
+        if(!file.exists() || !file.isFile() || !file.canRead()) {
+            if(callback != null){ callback.onError(UploadErrors.FILE_OPEN); }
+            return;
+        }
+
+        InputStream is;
+        try {
+            is = new FileInputStream(filePath);
+        } catch(Exception e) {
+            if(callback != null){ callback.onError(UploadErrors.FILE_OPEN); }
+            return;
+        }
+        upload(board, is, callback);
+    }
+
+    /**
+     * Uploads a binary file to a device on background process.
+     * @param board board profile e.g. Boards.ARDUINO_UNO
+     * @param fileStream a binary stream e.g. getResources().getAssets().open("Blink.uno.hex")
+     * @throws RuntimeException
+     */
+    public void upload(Boards board, InputStream fileStream) throws RuntimeException {
+        upload(board, fileStream, null);
+    }
+
+    boolean serialIsNull = false;
+    /**
+     * Uploads a binary file to a device on background process.
+     * @param board board profile e.g. Boards.ARDUINO_UNO
+     * @param fileStream a binary stream e.g. getResources().getAssets().open("Blink.uno.hex")
+     * @param callback
+     * @throws RuntimeException
+     */
+    public void upload(Boards board, InputStream fileStream, UploadCallBack callback) throws RuntimeException {
         mUploader   = new Uploader();
         mCallBack   = callback;
-        mFilePath   = filePath;
+        mFileStream = fileStream;
         mBoard      = board;
+
+        if (mSerial == null) { // if not open
+            if(DEBUG_SHOW) { Log.d(TAG, "upload : mSerial is null"); }
+            mSerial = new AutoCommunicator()
+            .getSerialCommunicator(mContext);   // need to run on non-thread
+            serialIsNull = true;
+        }
 
         new Thread(new Runnable() {
             @Override
@@ -176,25 +229,34 @@ public class Physicaloid {
                 synchronized (LOCK) {
                 synchronized (LOCK_WRITE) {
                 synchronized (LOCK_READ) {
-                    boolean cleanAfter = false;
                     UartConfig tmpUartConfig = new UartConfig();
 
-                    if (mSerial == null) { // if not open
-                        mSerial = new AutoCommunicator()
-                                .getSerialCommunicator(mContext);
-                        if (!mSerial.open()) { // fail
-                            if (mCallBack != null) {
-                                mCallBack.onError(UploadErrors.OPEN_DEVICE);
-                            }
+
+                    if (mSerial == null) { // fail
+                        if(DEBUG_SHOW) { Log.d(TAG, "upload : mSerial is null"); }
+                        if (mCallBack != null) {
+                            mCallBack.onError(UploadErrors.OPEN_DEVICE);
+                        }
+                        mBoard = null;
+                        mFileStream = null;
+                        mCallBack = null;
+                        mUploader = null;
+                        mSerial = null;
+                        return;
+                    }
+
+                    if(!mSerial.isOpened()){
+                        if(!mSerial.open()) {
+                            if(DEBUG_SHOW) { Log.d(TAG, "upload : cannot mSerial.open"); }
+                            if (mCallBack != null) { mCallBack.onError(UploadErrors.OPEN_DEVICE); }
                             mBoard = null;
-                            mFilePath = null;
+                            mFileStream = null;
                             mCallBack = null;
                             mUploader = null;
                             mSerial = null;
                             return;
-                        } else { // successful
-                            cleanAfter = true;
                         }
+                        if(DEBUG_SHOW) { Log.d(TAG, "upload : open successful"); }
                     } else { // if already open
                         UartConfig origUartConfig = mSerial.getUartConfig();
                         tmpUartConfig.baudrate = origUartConfig.baudrate;
@@ -203,27 +265,28 @@ public class Physicaloid {
                         tmpUartConfig.parity = origUartConfig.parity;
                         tmpUartConfig.dtrOn = origUartConfig.dtrOn;
                         tmpUartConfig.rtsOn = origUartConfig.rtsOn;
+                        if(DEBUG_SHOW) { Log.d(TAG, "upload : already open"); }
                     }
 
                     mSerial.stopReadListener();
                     mSerial.clearBuffer();
 
-                    mUploader.upload(mFilePath, mBoard, mSerial, mCallBack);
+                    mUploader.upload(mFileStream, mBoard, mSerial, mCallBack);
 
                     mSerial.setUartConfig(tmpUartConfig); // recover if already
                                                           // open
                     mSerial.clearBuffer();
                     mSerial.startReadListener();
-                    if (cleanAfter) {
+                    if (serialIsNull) {
                         mSerial.close();
                     }
 
                     mBoard = null;
-                    mFilePath = null;
+                    mFileStream = null;
                     mCallBack = null;
                     mUploader = null;
-                }
-            }}}
+                }}}
+            }
         }).start();
     }
 
