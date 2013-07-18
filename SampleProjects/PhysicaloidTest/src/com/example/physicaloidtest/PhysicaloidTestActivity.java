@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid;
@@ -59,6 +60,8 @@ public class PhysicaloidTestActivity extends Activity {
     public void onClickOpen(View v) {
         if(mPhysicaloid.open()) {
             updateViews(true);
+        } else {
+            Toast.makeText(this, "Cannot open", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -95,7 +98,9 @@ public class PhysicaloidTestActivity extends Activity {
         } else {
             mPhysicaloid.addReadListener(new ReadLisener() {
                 @Override
-                public void onRead(byte[] buf, int size) {
+                public void onRead(int size) {
+                    byte[] buf = new byte[size];
+                    mPhysicaloid.read(buf, size);
                     tvAppend(tvRead, Html.fromHtml("<font color=blue>"+new String(buf)+"</font>"));
                 }
             });

@@ -36,6 +36,10 @@ public class Physicaloid {
     UploadCallBack mCallBack;   // callback on program() method
     String mFilePath;           // file path on program() method
 
+    static final Object LOCK = new Object();
+    static final Object LOCK_WRITE = new Object();
+    static final Object LOCK_READ = new Object();
+
     public Physicaloid(Context context) {
         this.mContext = context;
     }
@@ -56,10 +60,17 @@ public class Physicaloid {
      * @throws RuntimeException
      */
     public boolean open(UartConfig uart) throws RuntimeException {
-        mSerial = new AutoCommunicator().getSerialCommunicator(mContext);
-        if(mSerial == null) return false;
-        synchronized (mSerial) {
-            return mSerial.open();
+        synchronized (LOCK) {
+            if(mSerial == null) {
+                mSerial = new AutoCommunicator().getSerialCommunicator(mContext);
+                if(mSerial == null) return false;
+            }
+            if(mSerial.open()) {
+                mSerial.setUartConfig(uart);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -69,9 +80,14 @@ public class Physicaloid {
      * @throws RuntimeException
      */
     public boolean close() throws RuntimeException {
-        if(mSerial == null) return false;
-        synchronized (mSerial) {
-            return mSerial.close();
+        synchronized (LOCK) {
+            if(mSerial == null) return true;
+            if(mSerial.close()) {
+                mSerial = null;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -83,8 +99,8 @@ public class Physicaloid {
      * @throws RuntimeException
      */
     public int read(byte[] buf, int size) throws RuntimeException {
-        if(mSerial == null) return 0;
-        synchronized (mSerial) {
+        synchronized (LOCK_READ) {
+            if(mSerial == null) return 0;
             return mSerial.read(buf, size);
         }
     }
@@ -96,12 +112,12 @@ public class Physicaloid {
      * @throws RuntimeException
      */
     public boolean addReadListener(ReadLisener listener) throws RuntimeException {
-        if(mSerial == null) return false;
-        if(listener == null) return false;
-        synchronized (mSerial) {
+        synchronized (LOCK_READ) {
+            if(mSerial == null) return false;
+            if(listener == null) return false;
             mSerial.addReadListener(listener);
+            return true;
         }
-        return true;
     }
 
     /**
@@ -109,8 +125,8 @@ public class Physicaloid {
      * @throws RuntimeException
      */
     public void clearReadListener() throws RuntimeException {
-        if(mSerial == null) return;
-        synchronized (mSerial) {
+        synchronized (LOCK_READ) {
+            if(mSerial == null) return;
             mSerial.clearReadListener();
         }
     }
@@ -123,8 +139,8 @@ public class Physicaloid {
      * @throws RuntimeException
      */
     public int write(byte[] buf, int size) throws RuntimeException {
-        if(mSerial == null) return 0;
-        synchronized (mSerial) {
+        synchronized (LOCK_WRITE){
+            if(mSerial == null) return 0;
             return mSerial.write(buf, size);
         }
     }
@@ -154,27 +170,32 @@ public class Physicaloid {
         mFilePath   = filePath;
         mBoard      = board;
 
-        new Thread(new Runnable(){
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                boolean cleanAfter = false;
-                UartConfig tmpUartConfig = new UartConfig();
+                synchronized (LOCK) {
+                synchronized (LOCK_WRITE) {
+                synchronized (LOCK_READ) {
+                    boolean cleanAfter = false;
+                    UartConfig tmpUartConfig = new UartConfig();
 
-                if(mSerial == null) {   // if not open
-                    mSerial = new AutoCommunicator().getSerialCommunicator(mContext);
-                    if(!mSerial.open()) {   // fail
-                        if(mCallBack != null) { mCallBack.onError(UploadErrors.OPEN_DEVICE); }
-                        mBoard      = null;
-                        mFilePath   = null;
-                        mCallBack   = null;
-                        mUploader   = null;
-                        mSerial     = null;
-                        return;
-                    } else {    // successful
-                        cleanAfter = true;
-                    }
-                } else {                // if already open
-                    synchronized (mSerial) {
+                    if (mSerial == null) { // if not open
+                        mSerial = new AutoCommunicator()
+                                .getSerialCommunicator(mContext);
+                        if (!mSerial.open()) { // fail
+                            if (mCallBack != null) {
+                                mCallBack.onError(UploadErrors.OPEN_DEVICE);
+                            }
+                            mBoard = null;
+                            mFilePath = null;
+                            mCallBack = null;
+                            mUploader = null;
+                            mSerial = null;
+                            return;
+                        } else { // successful
+                            cleanAfter = true;
+                        }
+                    } else { // if already open
                         UartConfig origUartConfig = mSerial.getUartConfig();
                         tmpUartConfig.baudrate = origUartConfig.baudrate;
                         tmpUartConfig.dataBits = origUartConfig.dataBits;
@@ -183,26 +204,26 @@ public class Physicaloid {
                         tmpUartConfig.dtrOn = origUartConfig.dtrOn;
                         tmpUartConfig.rtsOn = origUartConfig.rtsOn;
                     }
-                }
 
-                synchronized (mSerial) {
+                    mSerial.stopReadListener();
                     mSerial.clearBuffer();
+
                     mUploader.upload(mFilePath, mBoard, mSerial, mCallBack);
-                    mSerial.setUartConfig(tmpUartConfig); // recover if already open
+
+                    mSerial.setUartConfig(tmpUartConfig); // recover if already
+                                                          // open
                     mSerial.clearBuffer();
-                    if(cleanAfter) {
+                    mSerial.startReadListener();
+                    if (cleanAfter) {
                         mSerial.close();
-                        mSerial = null;
                     }
+
+                    mBoard = null;
+                    mFilePath = null;
+                    mCallBack = null;
+                    mUploader = null;
                 }
-
-                mBoard      = null;
-                mFilePath   = null;
-                mCallBack   = null;
-                mUploader   = null;
-
-            }
-            
+            }}}
         }).start();
     }
 
@@ -226,8 +247,8 @@ public class Physicaloid {
      * @param settings
      */
     void setConfig(UartConfig settings) throws RuntimeException{
-        if(mSerial == null) return;
-        synchronized (mSerial) {
+        synchronized (LOCK) {
+            if(mSerial == null) return;
             mSerial.setUartConfig(settings);
         }
     }

@@ -146,7 +146,7 @@ public class UartCdcAcm extends SerialCommunicator{
 
                 if (len > 0) {
                     mBuffer.add(rbuf, len);
-                    onRead(rbuf, len);
+                    onRead(len);
                 }
 
                 if (mReadThreadStop) {
@@ -334,22 +334,33 @@ public class UartCdcAcm extends SerialCommunicator{
     //////////////////////////////////////////////////////////
     private List<ReadLisener> uartReadListenerList
         = new ArrayList<ReadLisener>();
+    private boolean mStopReadListener = false;
 
+    @Override
     public void addReadListener(ReadLisener listener) {
         uartReadListenerList.add(listener);
     }
 
+    @Override
     public void clearReadListener() {
         uartReadListenerList.clear();
     }
 
-    private boolean onRead(byte[] buf, int size) {
-        boolean ret = false;
+    @Override
+    public void startReadListener() {
+        mStopReadListener = false;
+    }
+
+    @Override
+    public void stopReadListener() {
+        mStopReadListener = true;
+    }
+
+    private void onRead(int size) {
+        if(mStopReadListener) return;
         for (ReadLisener listener: uartReadListenerList) {
-            listener.onRead(buf, size);
-            ret = true;
+            listener.onRead(size);
         }
-        return ret;
     }
     //////////////////////////////////////////////////////////
 

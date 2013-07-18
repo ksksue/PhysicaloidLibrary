@@ -151,6 +151,16 @@ public abstract class SerialCommunicator {
     abstract public void clearReadListener();
 
     /**
+     * Starts read listener (default is started)
+     */
+    abstract public void startReadListener();
+
+    /**
+     * Stops read listener (default is started)
+     */
+    abstract public void stopReadListener();
+
+    /**
      * Clears read buffer
      */
     abstract public void clearBuffer();
