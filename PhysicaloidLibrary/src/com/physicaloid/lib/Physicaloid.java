@@ -21,7 +21,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import android.content.Context;
-import android.os.Handler;
 import android.util.Log;
 
 import com.physicaloid.lib.framework.AutoCommunicator;

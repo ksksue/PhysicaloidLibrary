@@ -1,13 +1,21 @@
 package com.example.physicaloidtest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,12 +29,16 @@ import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 
 public class PhysicaloidTestActivity extends Activity {
-    static final String TAG = PhysicaloidTestActivity.class.getSimpleName();
+    private static final String TAG = PhysicaloidTestActivity.class.getSimpleName();
 
     @SuppressLint("SdCardPath")
-    private static final String UPLOAD_FILE = "/sdcard/arduino/serialtest.uno.hex";
-    private static final String ASSET_FILE_NAME = "Blink.uno.hex";
+    private static final String UPLOAD_FILE_UNO     = "/sdcard/arduino/serialtest.uno.hex";
+    @SuppressLint("SdCardPath")
+    private static final String UPLOAD_FILE_MEGA    = "/sdcard/arduino/serialtest.mega.hex";
+    private static final String ASSET_FILE_NAME_UNO = "Blink.uno.hex";
+    private static final String ASSET_FILE_NAME_MEGA= "Blink.mega.hex";
     Physicaloid mPhysicaloid;
+    Boards mSelectedBoard;
 
     Button btOpen;
     Button btClose;
@@ -36,6 +48,7 @@ public class PhysicaloidTestActivity extends Activity {
     Button btUpload;
     EditText etWrite;
     TextView tvRead;
+    TextView tvSelectedBoard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,10 +63,22 @@ public class PhysicaloidTestActivity extends Activity {
         btUpload        = (Button) findViewById(R.id.btUpload);
         etWrite         = (EditText) findViewById(R.id.etWrite);
         tvRead          = (TextView) findViewById(R.id.tvRead);
+        tvSelectedBoard = (TextView) findViewById(R.id.tvSelectedBoard);
 
         updateViews(false);
 
         mPhysicaloid = new Physicaloid(this);
+
+        // Shows last selected board
+        mBoardList = new ArrayList<Boards>();
+        for(Boards board : Boards.values()) {
+            if(board.support>0) {
+                mBoardList.add(board);
+            }
+        }
+        int lastBoard = getSelectedBoard();
+        tvSelectedBoard.setText(mBoardList.get(lastBoard).text);
+        mSelectedBoard = mBoardList.get(lastBoard);
     }
 
     @Override
@@ -116,13 +141,25 @@ public class PhysicaloidTestActivity extends Activity {
     }
 
     public void onClickUpload(View v) {
-        mPhysicaloid.upload(Boards.ARDUINO_UNO, UPLOAD_FILE,
+        String fileName;
+        if(mSelectedBoard == Boards.ARDUINO_MEGA_2560_ADK) {
+            fileName = UPLOAD_FILE_MEGA;
+        } else {
+            fileName = UPLOAD_FILE_UNO;
+        }
+        mPhysicaloid.upload(mSelectedBoard, fileName,
                 mUploadCallback);
     }
 
     public void onClickUploadAsset(View v) {
+        String assetFileName;
+        if(mSelectedBoard == Boards.ARDUINO_MEGA_2560_ADK) {
+            assetFileName = ASSET_FILE_NAME_MEGA;
+        } else {
+            assetFileName = ASSET_FILE_NAME_UNO;
+        }
         try {
-            mPhysicaloid.upload(Boards.ARDUINO_UNO, getResources().getAssets().open(ASSET_FILE_NAME), mUploadCallback);
+            mPhysicaloid.upload(mSelectedBoard, getResources().getAssets().open(assetFileName), mUploadCallback);
         } catch (RuntimeException e) {
             Log.e(TAG, e.toString());
         } catch (IOException e) {
@@ -196,4 +233,90 @@ public class PhysicaloidTestActivity extends Activity {
         }
         return str;
     }
+
+    /////////////////////////////////////////////////////////////////
+    // Board select menu
+    /////////////////////////////////////////////////////////////////
+    private static final int MENU_ID_BOARD      = 1;
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.activity_main, menu);
+        menu.add(Menu.NONE, MENU_ID_BOARD, Menu.NONE, "Select board.");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case MENU_ID_BOARD:
+                showSelectBoardDialog();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private ArrayList<Boards> mBoardList;
+    private int mItemPos = 0;
+
+    private void showSelectBoardDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select a board");
+
+        // get from Boards list
+        List<String> items = new ArrayList<String>();
+        for(Boards board : Boards.values()) {
+            if(board.support>0) {
+                items.add(board.text);
+            }
+        }
+        String[] itemStr = (String[])items.toArray(new String[0]);
+        builder.setSingleChoiceItems(itemStr, getSelectedBoard(), mItemListener);
+
+        builder.setPositiveButton("OK", mButtonListener );
+        builder.setNeutralButton ("Cancel", mButtonListener );
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    DialogInterface.OnClickListener mItemListener = new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+            mItemPos = which;
+        }
+    };
+
+    DialogInterface.OnClickListener mButtonListener = new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+            switch( which ){
+            case AlertDialog.BUTTON_POSITIVE:   // OK pressed
+                saveSelectedBoard(mItemPos);
+                mSelectedBoard = mBoardList.get(mItemPos);
+                tvSelectedBoard.setText(mBoardList.get(mItemPos).text);
+                break;
+            case AlertDialog.BUTTON_NEUTRAL:    // Cancel pressed
+                break;
+            }
+        }
+    };
+
+    // Saves selected board position
+    private void saveSelectedBoard(int pos) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        sp.edit().putInt("SelectedBoardPosition", pos).commit();
+    }
+
+    // Gets selected board position
+    private int getSelectedBoard() {
+        int pos;
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        pos = sp.getInt("SelectedBoardPosition", 0);
+        return pos;
+    }
+    /////////////////////////////////////////////////////////////////
+    // End of board select menu
+    /////////////////////////////////////////////////////////////////
+
 }

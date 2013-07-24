@@ -109,4 +109,13 @@
         android:onClick="onClickWrite"
         android:text="Write" />
 
+    <TextView
+        android:id="@+id/tvSelectedBoard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btClose"
+        android:layout_alignBottom="@+id/btClose"
+        android:layout_toRightOf="@+id/btClose"
+        android:text="Arduino UNO" />
+
 </RelativeLayout>

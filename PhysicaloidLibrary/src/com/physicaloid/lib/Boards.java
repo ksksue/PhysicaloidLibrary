@@ -34,7 +34,7 @@ public enum Boards {
     ARDUINO_FIO                 (0, "afio",ChipTypes.M328P,     UploadProtocols.STK500,   57600, ComProtocols.UART, "Arduino Fio"),
     ARDUINO_BT_328              (0, "bt32",ChipTypes.M328P,     UploadProtocols.STK500,   19200, ComProtocols.UART, "Arduino BT ATmega328"),
     ARDUINO_BT_168              (0, "bt16",ChipTypes.M168,      UploadProtocols.STK500,   19200, ComProtocols.UART, "Arduino BT ATmega168"),
-    ARDUINO_LILYPAD_USB         (0, "lpus",ChipTypes.ATMEGA32U4,UploadProtocols.AVR109,   57600, ComProtocols.UART, "LilyPad Arduino USB"),
+//    ARDUINO_LILYPAD_USB         (0, "lpus",ChipTypes.ATMEGA32U4,UploadProtocols.AVR109,   57600, ComProtocols.UART, "LilyPad Arduino USB"),
     ARDUINO_LILYPAD_328         (0, "lp32",ChipTypes.M328P,     UploadProtocols.STK500,   57600, ComProtocols.UART, "LilyPad Arduino ATmega328"),
     ARDUINO_LILYPAD_168         (0, "lp16",ChipTypes.M168,      UploadProtocols.STK500,   19200, ComProtocols.UART, "LilyPad Arduino ATmega168"),
     ARDUINO_PRO_5V_328          (0, "pm53",ChipTypes.M328P,     UploadProtocols.STK500,   57600, ComProtocols.UART, "Arduino Pro or Pro Mini (5V, 16MHz) ATmega328"),

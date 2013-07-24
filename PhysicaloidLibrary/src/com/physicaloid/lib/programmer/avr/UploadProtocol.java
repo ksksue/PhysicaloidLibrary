@@ -51,6 +51,7 @@ public abstract class UploadProtocol {
     }
 
     protected void report_progress(int prog) {
+        if(prog > 100) { prog = 100; }
         if(callback == null) return;
         callback.onUploading(prog);
     }

@@ -21,6 +21,7 @@ import java.io.InputStream;
 import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid.UploadCallBack;
 import com.physicaloid.lib.programmer.avr.AvrUploader;
+import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
 
 public class Uploader {
@@ -29,6 +30,13 @@ public class Uploader {
         boolean ret = false;
 
         if(callback != null) {callback.onPreUpload(); }
+
+        if(board == null) {
+            if(callback != null) {
+                callback.onError(UploadErrors.AVR_CHIPTYPE);
+            }
+            return false;
+        }
 
         if(     board.uploadProtocol == Boards.UploadProtocols.STK500 ||
                 board.uploadProtocol == Boards.UploadProtocols.STK500V2) {
