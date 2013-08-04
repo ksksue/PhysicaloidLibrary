@@ -1,0 +1,8 @@
+com.physicaloid
+com.physicaloid.lib
+com.physicaloid.lib.framework
+com.physicaloid.lib.programmer.avr
+com.physicaloid.lib.usb
+com.physicaloid.lib.usb.driver.uart
+com.physicaloid.misc
+cz.jaybee.intelhex
