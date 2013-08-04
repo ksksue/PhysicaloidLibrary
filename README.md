@@ -17,11 +17,13 @@ You (developer) can include Arduino firmwares in your Android app and upload to 
 Features
 -----------------
 - Android Java library project
-- open-source(Apache License 2.0)
+- USB-Serial communication
+- upload a firmware to an Arduino
 - support on Android 3.1 or higher (need USB Host API feature)
 - **does not require ROOT**
-- support writing firmware protocol : STK500, STK500V2
-- support USB-Serial protocol : CDC-ACM
+- support USB-Serial protocols : CDC-ACM, FTDI
+- support uploading firmware protocols : STK500, STK500V2
+- open-source(Apache License 2.0)
 
 
 Code example
@@ -34,7 +36,7 @@ mPhysicaloid.upload(Boards.ARDUINO_UNO, "/sdcard/arduino/Blink.hex");
 ```
 
 
-### Write to Arduino ###
+### Write serial data to Arduino ###
 ```java
 Physicaloid mPhysicaloid = new Physicaloid(this);
 if(mPhysicaloid.open()) {
@@ -45,7 +47,7 @@ if(mPhysicaloid.open()) {
 ```
 
 
-### Read from Arduino ###
+### Read serial data from Arduino ###
 ```java
 Physicaloid mPhysicaloid = new Physicaloid(this);
 TextView TextView1 = (TextView) findViewById(R.id.TextView1);// Android TextView
