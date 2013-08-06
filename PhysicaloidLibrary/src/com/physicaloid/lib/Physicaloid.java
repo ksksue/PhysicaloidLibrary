@@ -101,6 +101,17 @@ public class Physicaloid {
     /**
      * Reads from a device
      * @param buf
+     * @return read byte size
+     * @throws RuntimeException
+     */
+    public int read(byte[] buf) throws RuntimeException {
+        if(mSerial == null) return 0;
+        return read(buf, buf.length);
+    }
+
+    /**
+     * Reads from a device
+     * @param buf
      * @param size
      * @return read byte size
      * @throws RuntimeException
@@ -141,8 +152,19 @@ public class Physicaloid {
     /**
      * Writes to a device.
      * @param buf
+     * @return written byte size
+     * @throws RuntimeException
+     */
+    public int write(byte[] buf) throws RuntimeException {
+        if(mSerial == null) return 0;
+        return write(buf, buf.length);
+    }
+
+    /**
+     * Writes to a device.
+     * @param buf
      * @param size
-     * @return
+     * @return written byte size
      * @throws RuntimeException
      */
     public int write(byte[] buf, int size) throws RuntimeException {
