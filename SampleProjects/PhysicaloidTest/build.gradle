@@ -1,13 +1,8 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:0.5.+'
-    }
-}
-
 apply plugin: 'android'
+
+dependencies {
+    compile project(':PhysicaloidLibrary')
+}
 
 android {
     compileSdkVersion 18
@@ -26,8 +21,4 @@ android {
             assets.srcDirs = ['assets']
         }
     }
-}
-
-dependencies {
-    compile project(':PhysicaloidLibrary')
 }
