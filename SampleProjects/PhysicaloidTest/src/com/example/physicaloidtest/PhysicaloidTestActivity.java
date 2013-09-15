@@ -31,12 +31,18 @@ import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 public class PhysicaloidTestActivity extends Activity {
     private static final String TAG = PhysicaloidTestActivity.class.getSimpleName();
 
+    // The serialtest.*.hex is an echo-back program.
+    //  http://www.physicaloid.com/hexfiles/serialtest.ino
+    // You can download those hex files from 
+    //  http://www.physicaloid.com/hexfiles/serialtest.uno.hex
+    //  http://www.physicaloid.com/hexfiles/serialtest.mega.hex
     @SuppressLint("SdCardPath")
     private static final String UPLOAD_FILE_UNO     = "/sdcard/arduino/serialtest.uno.hex";
     @SuppressLint("SdCardPath")
     private static final String UPLOAD_FILE_MEGA    = "/sdcard/arduino/serialtest.mega.hex";
     private static final String ASSET_FILE_NAME_UNO = "Blink.uno.hex";
     private static final String ASSET_FILE_NAME_MEGA= "Blink.mega.hex";
+
     Physicaloid mPhysicaloid;
     Boards mSelectedBoard;
 
