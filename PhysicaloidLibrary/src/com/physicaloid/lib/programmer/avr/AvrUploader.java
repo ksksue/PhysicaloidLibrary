@@ -86,11 +86,9 @@ public class AvrUploader {
             return false;
         }
 
-        if(board.chipType == Boards.ChipTypes.M168) {
+        if (board.uploadProtocol == Boards.UploadProtocols.STK500) {
             mProg = new Stk500();
-        } else if(board.chipType == Boards.ChipTypes.M328P) {
-            mProg = new Stk500();
-        } else if(board.chipType == Boards.ChipTypes.M2560){
+        } else if(board.uploadProtocol == Boards.UploadProtocols.STK500V2) {
             mProg = new Stk500V2();
         } else {
             if(callback != null){ callback.onError(UploadErrors.AVR_CHIPTYPE); }

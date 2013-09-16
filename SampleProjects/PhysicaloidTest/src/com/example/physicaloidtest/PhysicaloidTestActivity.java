@@ -37,11 +37,15 @@ public class PhysicaloidTestActivity extends Activity {
     //  http://www.physicaloid.com/hexfiles/serialtest.uno.hex
     //  http://www.physicaloid.com/hexfiles/serialtest.mega.hex
     @SuppressLint("SdCardPath")
-    private static final String UPLOAD_FILE_UNO     = "/sdcard/arduino/serialtest.uno.hex";
+    private static final String UPLOAD_FILE_UNO             = "/sdcard/arduino/serialtest.uno.hex";
     @SuppressLint("SdCardPath")
-    private static final String UPLOAD_FILE_MEGA    = "/sdcard/arduino/serialtest.mega.hex";
-    private static final String ASSET_FILE_NAME_UNO = "Blink.uno.hex";
-    private static final String ASSET_FILE_NAME_MEGA= "Blink.mega.hex";
+    private static final String UPLOAD_FILE_MEGA            = "/sdcard/arduino/serialtest.mega.hex";
+    @SuppressLint("SdCardPath")
+    private static final String UPLOAD_FILE_BALANDUINO      = "/sdcard/arduino/serialtest.balanduino.hex";
+
+    private static final String ASSET_FILE_NAME_UNO         = "Blink.uno.hex";
+    private static final String ASSET_FILE_NAME_MEGA        = "Blink.mega.hex";
+    private static final String ASSET_FILE_NAME_BALANDUINO  = "Blink.balanduino.hex";
 
     Physicaloid mPhysicaloid;
     Boards mSelectedBoard;
@@ -150,6 +154,8 @@ public class PhysicaloidTestActivity extends Activity {
         String fileName;
         if(mSelectedBoard == Boards.ARDUINO_MEGA_2560_ADK) {
             fileName = UPLOAD_FILE_MEGA;
+        } else if(mSelectedBoard == Boards.BALANDUINO) {
+            fileName = UPLOAD_FILE_BALANDUINO;
         } else {
             fileName = UPLOAD_FILE_UNO;
         }
@@ -161,6 +167,8 @@ public class PhysicaloidTestActivity extends Activity {
         String assetFileName;
         if(mSelectedBoard == Boards.ARDUINO_MEGA_2560_ADK) {
             assetFileName = ASSET_FILE_NAME_MEGA;
+        } else if(mSelectedBoard == Boards.BALANDUINO) {
+            assetFileName = ASSET_FILE_NAME_BALANDUINO;
         } else {
             assetFileName = ASSET_FILE_NAME_UNO;
         }

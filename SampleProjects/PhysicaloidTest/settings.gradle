@@ -1,2 +1,0 @@
-include ':PhysicaloidLibrary'
-project(':PhysicaloidLibrary').projectDir = new File('../../PhysicaloidLibrary')
