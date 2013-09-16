@@ -473,9 +473,11 @@ public class AvrConf {
             setATmega168();
         } else if(board.chipType == Boards.ChipTypes.M328P) {
             setATmega328P();
+        } else if(board.chipType == Boards.ChipTypes.M1284P) {
+            setATmega1284P();
         } else if(board.chipType == Boards.ChipTypes.M2560) {
-                setATmega2560();
-            } else {
+            setATmega2560();
+        } else {
             throw new IllegalArgumentException("not support AVR type.");
         }
     }
@@ -544,6 +546,141 @@ public class AvrConf {
                 10,
                 256,
                 256); 
+    }
+
+    private void setATmega1284P(){
+        desc            = "ATMEGA1284P";
+        has_jtag        = true;
+        stk500_devcode  = (byte) 0x82;
+        signature       = createSignature(0x1e, 0x97, 0x05);
+        pagel           = (byte) 0xd7;
+        bs2             = (byte) 0xa0;
+
+        timeout         = (byte)200;
+        stabdelay       = (byte)100;
+        cmdexedelay     = (byte)25;
+        synchloops      = (byte)32;
+        bytedelay       = (byte)0;
+        pollindex       = (byte)3;
+        pollvalue       = (byte)0x53;
+        predelay        = (byte)1;
+        postdelay       = (byte)1;
+        pollmethod      = (byte)1;
+
+        eeprom = new AVRConfMemEEPROM(
+                false,
+                8,
+                4096,
+                9000,
+                9000,
+                0xff,
+                0xff,
+                new String[] {  " 1 0 1 0 0 0 0 0",
+                        " 0 0 x x a11 a10 a9 a8",
+                        " a7 a6 a5 a4 a3 a2 a1 a0",
+                        " o o o o o o o o"},
+                new String[] {  " 1 1 0 0 0 0 0 0",
+                        " 0 0 x x a11 a10 a9 a8",
+                        " a7 a6 a5 a4 a3 a2 a1 a0",
+                        " i i i i i i i i"},
+                new String[] {  " 1 1 0 0 0 0 0 1",
+                        " 0 0 0 0 0 0 0 0",
+                        " 0 0 0 0 0 a2 a1 a0",
+                        " i i i i i i i i"},
+                new String[] {  " 1 1 0 0 0 0 1 0",
+                        " 0 0 x x a11 a10 a9 a8",
+                        " a7 a6 a5 a4 a3 0 0 0",
+                        " x x x x x x x x"},
+                0x41,
+                10,
+                128,
+                256);
+
+        flash = new AVRConfMemFlash(
+                true,
+                131072,
+                256,
+                512,
+                4500,
+                4500,
+                0xff,
+                0xff,
+                new String[] {  " 0 0 1 0 0 0 0 0",
+                        " a15 a14 a13 a12 a11 a10 a9 a8",
+                        " a7 a6 a5 a4 a3 a2 a1 a0",
+                        " o o o o o o o o"},
+                new String[] {  " 0 0 1 0 1 0 0 0",
+                        " a15 a14 a13 a12 a11 a10 a9 a8",
+                        " a7 a6 a5 a4 a3 a2 a1 a0",
+                        " o o o o o o o o"},
+                new String[] {  " 0 1 0 0 0 0 0 0",
+                        " 0 0 x x x x x x",
+                        " x a6 a5 a4 a3 a2 a1 a0",
+                        " i i i i i i i i"},
+                new String[] {  " 0 1 0 0 1 0 0 0",
+                        " 0 0 x x x x x x",
+                        " x a6 a5 a4 a3 a2 a1 a0",
+                        " i i i i i i i i"},
+
+                new String[] { " 0 1 0 0 1 1 0 0",
+                        " a15 a14 a13 a12 a11 a10 a9 a8",
+                        " a7 x x x x x x x",
+                        " x x x x x x x x"},
+                null,
+                0x41,
+                10,
+                256,
+                256);
+
+        fuse = new AVRConfMemFuse(
+                "",
+                0,
+                0,
+                0,
+                new String[]{   "",
+                        ""},
+                new String[]{   "",
+                        ""});
+
+        lfuse = new AVRConfMemFuse(
+                "lfuse",
+                1,
+                9000,
+                9000,
+                new String[]{   "0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0",
+                        "x x x x x x x x o o o o o o o o"},
+                new String[]{   "1 0 1 0 1 1 0 0 1 0 1 0 0 0 0 0",
+                        "x x x x x x x x i i i i i i i i"});
+
+        hfuse = new AVRConfMemFuse(
+                "hfuse",
+                1,
+                9000,
+                9000,
+                new String[]{   "0 1 0 1 1 0 0 0 0 0 0 0 1 0 0 0",
+                        "x x x x x x x x o o o o o o o o"},
+                new String[]{   "1 0 1 0 1 1 0 0 1 0 1 0 1 0 0 0",
+                        "x x x x x x x x i i i i i i i i"});
+
+        efuse = new AVRConfMemFuse(
+                "efuse",
+                1,
+                9000,
+                9000,
+                new String[]{   "0 1 0 1 0 0 0 0 0 0 0 0 1 0 0 0",
+                        "x x x x x x x x o o o o o o o o"},
+                new String[]{   "1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0",
+                        "x x x x x x x x 1 1 1 1 1 i i i"});
+
+        lock = new AVRConfMemFuse(
+                "lock",
+                1,
+                9000,
+                9000,
+                new String[]{   "0 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0",
+                        "x x x x x x x x x x o o  o o o o"},
+                new String[]{   "1 0 1 0 1 1 0 0 1 1 1 x x x x x",
+                        "x x x x x x x x 1 1 i i i i i i"});
     }
 
     private void setATmega328P(){

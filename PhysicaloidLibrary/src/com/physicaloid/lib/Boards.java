@@ -44,6 +44,8 @@ public enum Boards {
     ARDUINO_NG_168              (0, "ng16",ChipTypes.M168,      UploadProtocols.STK500,   19200, ComProtocols.UART, "Arduino NG or older ATmega168"),
     ARDUINO_NG_8                (0, "ng08",ChipTypes.M8,        UploadProtocols.STK500,   19200, ComProtocols.UART, "Arduino NG or older ATmega8"),
 
+    BALANDUINO                  (1, "bala",ChipTypes.M1284P,    UploadProtocols.STK500,  115200, ComProtocols.UART, "Balanduino"),
+
     // mbed Series
 //    MBED_LPC1768                (0, "mbd1",ChipTypes.MBED_LPC1768,      UploadProtocols.USBMEM,   0, ComProtocols.UART, "mbed LPC1768"),
 //    MBED_LPC11U24               (0, "mbd2",ChipTypes.MBED_LPC11U24,     UploadProtocols.USBMEM,   0, ComProtocols.UART, "mbed LPC11U24"),
@@ -81,6 +83,7 @@ public enum Boards {
         public static final int M1280                   = 4;
         public static final int M2560                   = 5;
         public static final int ATMEGA32U4              = 6;
+        public static final int M1284P                  = 7;
 
         // mbed
         public static final int MBED_LPC1768            = 31;

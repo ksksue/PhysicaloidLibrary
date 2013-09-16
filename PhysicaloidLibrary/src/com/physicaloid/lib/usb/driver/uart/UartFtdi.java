@@ -88,8 +88,10 @@ public class UartFtdi extends SerialCommunicator {
 
             ftDev = ftD2xx.openByIndex(mContext, USB_OPEN_INDEX);
         } else {
-            synchronized(ftDev) {
-                ftDev = ftD2xx.openByIndex(mContext, USB_OPEN_INDEX);
+            if (ftD2xx.createDeviceInfoList(mContext) > 0) {
+                synchronized(ftDev) {
+                    ftDev = ftD2xx.openByIndex(mContext, USB_OPEN_INDEX);
+                }
             }
         }
 
