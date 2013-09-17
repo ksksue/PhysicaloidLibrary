@@ -134,13 +134,20 @@ public class IntelHexParser {
             case EXT_LIN:
                 if (record.length == 2) {
                     upperAddress = ((record.data[0] & 0xFF) << 8) + (record.data[1] & 0xFF);
-                    upperAddress <<= 16;
+                    upperAddress <<= 16; // ELA is bits 16-31 of the segment base address (SBA), so shift left 16 bits
                 } else {
                     throw new Exception("Invalid EXT_LIN record (" + recordIdx + ")");
                 }
 
                 break;
             case EXT_SEG:
+                if (record.length == 2) {
+                    upperAddress = ((record.data[0] & 0xFF) << 8) + (record.data[1] & 0xFF);
+                    upperAddress <<= 4; // ESA is bits 4-19 of the segment base address (SBA), so shift left 4 bits
+                } else {
+                    throw new Exception("Invalid EXT_SEG record (" + recordIdx + ")");
+                }
+                break;
             case START_SEG:
             case START_LIN:
                 throw new Exception(record.type + " record not implemented (" + recordIdx + ")");
