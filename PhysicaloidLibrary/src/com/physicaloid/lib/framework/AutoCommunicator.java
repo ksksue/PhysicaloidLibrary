@@ -22,6 +22,7 @@ import android.hardware.usb.UsbDevice;
 import com.physicaloid.lib.UsbVidList;
 import com.physicaloid.lib.usb.UsbAccessor;
 import com.physicaloid.lib.usb.driver.uart.UartCdcAcm;
+import com.physicaloid.lib.usb.driver.uart.UartCp210x;
 import com.physicaloid.lib.usb.driver.uart.UartFtdi;
 
 public class AutoCommunicator {
@@ -39,8 +40,10 @@ public class AutoCommunicator {
             int vid = device.getVendorId();
             for(UsbVidList usbVid : UsbVidList.values()) {
                 if(vid == usbVid.getVid()) {
-                    if(vid == UsbVidList.FTDI.getVid()) {   // check FTDI or not
+                    if(vid == UsbVidList.FTDI.getVid()) {
                         return new UartFtdi(context);
+                    } else if(vid == UsbVidList.CP210X.getVid()) {
+                        return new UartCp210x(context);
                     } else {
                         return new UartCdcAcm(context);
                     }

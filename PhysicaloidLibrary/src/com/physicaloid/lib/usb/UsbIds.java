@@ -33,8 +33,8 @@ public enum UsbIds {
 
     public class Vid {
         public static final int FTDI        = 0x0403;
-        public static final int AVR         = 0x0403;
-        public static final int NXP         = 0x0403;
+        public static final int AVR         = 0x2341;
+        public static final int NXP         = 0x0d28;
     }
 
     public class DriverType {

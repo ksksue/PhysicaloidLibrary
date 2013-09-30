@@ -330,7 +330,7 @@ public class Physicaloid {
      * Sets 
      * @param settings
      */
-    void setConfig(UartConfig settings) throws RuntimeException{
+    public void setConfig(UartConfig settings) throws RuntimeException{
         synchronized (LOCK) {
             if(mSerial == null) return;
             mSerial.setUartConfig(settings);

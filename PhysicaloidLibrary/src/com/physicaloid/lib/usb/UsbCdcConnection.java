@@ -46,7 +46,17 @@ public class UsbCdcConnection {
      * @return true : open successful, false : open fail
      */
     public boolean open(UsbVidPid ids) {
-        return open(ids, 0);
+        return open(ids,false, 0);
+    }
+
+    /**
+     * Open first CDC-ACM device with VID and PID
+     * @param ids vid and pid
+     * @param isCdcAcm true then search only cdc-acm
+     * @return true : open successful, false : open fail
+     */
+    public boolean open(UsbVidPid ids, boolean isCdcAcm) {
+        return open(ids, isCdcAcm, 0);
     }
 
     /**
@@ -55,7 +65,7 @@ public class UsbCdcConnection {
      * @param ch channel
      * @return true : open successful, false : open fail
      */
-    public boolean open(UsbVidPid ids, int ch) {
+    public boolean open(UsbVidPid ids, boolean isCdcAcm, int ch) {
         if(ids == null) return false;
 
         int devNum  = 0;
@@ -64,7 +74,9 @@ public class UsbCdcConnection {
             if(usbdev.getVendorId() == ids.getVid()) {
                 if(ids.getPid() == 0 || ids.getPid() == usbdev.getProductId()) {
                     for(int intfNum=0; intfNum < usbdev.getInterfaceCount(); intfNum++) {
-                        if(usbdev.getInterface(intfNum).getInterfaceClass() == UsbConstants.USB_CLASS_CDC_DATA) {
+
+                        if( (isCdcAcm && (usbdev.getInterface(intfNum).getInterfaceClass() == UsbConstants.USB_CLASS_CDC_DATA))
+                                || !isCdcAcm) {
                             if(ch == chNum) {
                                 if(!mUsbAccess.deviceIsConnected(devNum)) {
                                     if(mUsbAccess.openDevice(devNum,intfNum,ch)) {

@@ -71,7 +71,7 @@ public class UartCdcAcm extends SerialCommunicator{
     }
 
     public boolean open(UsbVidPid ids) {
-        if(mUsbConnetionManager.open(ids)) {
+        if(mUsbConnetionManager.open(ids,true)) {
             mConnection     = mUsbConnetionManager.getConnection();
             mEndpointIn     = mUsbConnetionManager.getEndpointIn();
             mEndpointOut    = mUsbConnetionManager.getEndpointOut();
