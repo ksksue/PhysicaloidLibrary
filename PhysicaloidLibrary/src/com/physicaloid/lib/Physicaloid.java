@@ -175,7 +175,7 @@ public class Physicaloid {
     }
 
     /**
-     * Uploads a binary file to a device on background process.
+     * Uploads a binary file to a device on background process. No need to open().
      * @param board board profile e.g. Boards.ARDUINO_UNO
      * @param filePath a binary file path e.g. /sdcard/arduino/Blink.hex
      * @throws RuntimeException
@@ -185,7 +185,7 @@ public class Physicaloid {
     }
 
     /**
-     * Uploads a binary file to a device on background process.
+     * Uploads a binary file to a device on background process. No need to open().
      * @param board board profile e.g. Boards.ARDUINO_UNO
      * @param filePath a binary file path e.g. /sdcard/arduino/Blink.uno.hex
      * @param callback
@@ -214,7 +214,7 @@ public class Physicaloid {
     }
 
     /**
-     * Uploads a binary file to a device on background process.
+     * Uploads a binary file to a device on background process. No need to open().
      * @param board board profile e.g. Boards.ARDUINO_UNO
      * @param fileStream a binary stream e.g. getResources().getAssets().open("Blink.uno.hex")
      * @throws RuntimeException
@@ -225,7 +225,7 @@ public class Physicaloid {
 
     boolean serialIsNull = false;
     /**
-     * Uploads a binary file to a device on background process.
+     * Uploads a binary file to a device on background process. No need to open().
      * @param board board profile e.g. Boards.ARDUINO_UNO
      * @param fileStream a binary stream e.g. getResources().getAssets().open("Blink.uno.hex")
      * @param callback
@@ -327,13 +327,86 @@ public class Physicaloid {
     }
 
     /**
-     * Sets 
+     * Gets opened or closed status
+     * @return true : opened, false : closed
+     * @throws RuntimeException
+     */
+    public boolean isOpened() throws RuntimeException {
+        synchronized (LOCK) {
+            if(mSerial == null) return false;
+            return mSerial.isOpened();
+        }
+    }
+
+    /**
+     * Sets Serial Configuration
      * @param settings
      */
     public void setConfig(UartConfig settings) throws RuntimeException{
         synchronized (LOCK) {
             if(mSerial == null) return;
             mSerial.setUartConfig(settings);
+        }
+    }
+
+    /**
+     * Sets Baud Rate
+     * @param baudrate any baud-rate e.g. 9600
+     * @return true : successful, false : fail
+     */
+    public boolean setBaudrate(int baudrate) throws RuntimeException{
+        synchronized (LOCK) {
+            if(mSerial == null) return false;
+            return mSerial.setBaudrate(baudrate);
+        }
+    }
+
+    /**
+     * Sets Data Bits
+     * @param dataBits data bits e.g. UartConfig.DATA_BITS8
+     * @return true : successful, false : fail
+     */
+    public boolean setDataBits(int dataBits) throws RuntimeException{
+        synchronized (LOCK) {
+            if(mSerial == null) return false;
+            return mSerial.setDataBits(dataBits);
+        }
+    }
+
+    /**
+     * Sets Parity Bits
+     * @param parity parity bits e.g. UartConfig.PARITY_NONE
+     * @return true : successful, false : fail
+     */
+    public boolean setParity(int parity) throws RuntimeException{
+        synchronized (LOCK) {
+            if(mSerial == null) return false;
+            return mSerial.setParity(parity);
+        }
+    }
+
+    /**
+     * Sets Stop bits
+     * @param stopBits stop bits e.g. UartConfig.STOP_BITS1
+     * @return true : successful, false : fail
+     */
+    public boolean setStopBits(int stopBits) throws RuntimeException{
+        synchronized (LOCK) {
+            if(mSerial == null) return false;
+            return mSerial.setStopBits(stopBits);
+        }
+    }
+
+    /**
+     * Sets flow control DTR/RTS
+     * @param dtrOn true then DTR on
+     * @param rtsOn true then RTS on
+     * @return true : successful, false : fail
+     */
+    public boolean setDtrRts(boolean dtrOn, boolean rtsOn) throws RuntimeException{
+        synchronized (LOCK) {
+            if(mSerial == null) return false;
+            return mSerial.setDtrRts(dtrOn, rtsOn);
         }
     }
 }

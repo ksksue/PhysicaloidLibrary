@@ -20,9 +20,9 @@ public class UartConfig {
     public static final int DATA_BITS7          = 7;
     public static final int DATA_BITS8          = 8;
 
-    public static final int STOP_BITS1          = 1;
+    public static final int STOP_BITS1          = 0;
+    public static final int STOP_BITS1_5        = 1;
     public static final int STOP_BITS2          = 2;
-    public static final int STOP_BITS1_5        = 3;
 
     public static final int PARITY_NONE         = 0;
     public static final int PARITY_ODD          = 1;
@@ -30,12 +30,15 @@ public class UartConfig {
     public static final int PARITY_MARK         = 3;
     public static final int PARITY_SPACE        = 4;
 
+    public static final int FLOW_CONTROL_OFF    = 0;
+    public static final int FLOW_CONTROL_ON     = 1;
+
     public int baudrate;
     public int dataBits;
     public int stopBits;
     public int parity;
-    public boolean dtrOn;
     public boolean rtsOn;
+    public boolean dtrOn;
 
     public UartConfig() {
         this.baudrate       = 9600;

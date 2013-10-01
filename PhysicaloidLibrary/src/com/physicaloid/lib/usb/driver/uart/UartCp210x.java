@@ -262,12 +262,7 @@ public class UartCp210x extends SerialCommunicator{
         } // end of run()
     }; // end of runnable
 
-
-    /**
-     * Sets Uart configurations
-     * @param config configurations
-     * @return true : successful, false : fail
-     */
+    @Override
     public boolean setUartConfig(UartConfig config) {
         boolean res = true;
         boolean ret = true;
@@ -315,81 +310,6 @@ public class UartCp210x extends SerialCommunicator{
         return isOpened;
     }
 
-    /**
-     * Sets baudrate
-     * @param baudrate baudrate e.g. 9600
-     * @return true : successful, false : fail
-     */
-    public boolean setBaudrate(int baudrate) {
-        if (baudrate <= 300)            baudrate = 300;
-        else if (baudrate <= 600)       baudrate = 600;
-        else if (baudrate <= 1200)      baudrate = 1200;
-        else if (baudrate <= 1800)      baudrate = 1800;
-        else if (baudrate <= 2400)      baudrate = 2400;
-        else if (baudrate <= 4000)      baudrate = 4000;
-        else if (baudrate <= 4803)      baudrate = 4800;
-        else if (baudrate <= 7207)      baudrate = 7200;
-        else if (baudrate <= 9612)      baudrate = 9600;
-        else if (baudrate <= 14428)     baudrate = 14400;
-        else if (baudrate <= 16062)     baudrate = 16000;
-        else if (baudrate <= 19250)     baudrate = 19200;
-        else if (baudrate <= 28912)     baudrate = 28800;
-        else if (baudrate <= 38601)     baudrate = 38400;
-        else if (baudrate <= 51558)     baudrate = 51200;
-        else if (baudrate <= 56280)     baudrate = 56000;
-        else if (baudrate <= 58053)     baudrate = 57600;
-        else if (baudrate <= 64111)     baudrate = 64000;
-        else if (baudrate <= 77608)     baudrate = 76800;
-        else if (baudrate <= 117028)    baudrate = 115200;
-        else if (baudrate <= 129347)    baudrate = 128000;
-        else if (baudrate <= 156868)    baudrate = 153600;
-        else if (baudrate <= 237832)    baudrate = 230400;
-        else if (baudrate <= 254234)    baudrate = 250000;
-        else if (baudrate <= 273066)    baudrate = 256000;
-        else if (baudrate <= 491520)    baudrate = 460800;
-        else if (baudrate <= 567138)    baudrate = 500000;
-        else if (baudrate <= 670254)    baudrate = 576000;
-        else if (baudrate < 1000000)    baudrate = 921600;
-        else if (baudrate > 2000000)    baudrate = 2000000;
-
-        byte[] baudBytes = new byte[4];
-        intToLittleEndianBytes(baudrate, baudBytes);
-        int ret = cp210xSetConfig(CP210X_SET_BAUDRATE, baudBytes, 4);
-        if(ret < 0) { 
-            if(DEBUG_SHOW) { Log.d(TAG, "Fail to setBaudrate"); }
-            return false;
-        }
-        mUartConfig.baudrate = baudrate;
-        return true;
-    }
-
-    /**
-     * Transfers int to little endian byte array
-     * @param in integer value
-     * @param out 4 or less length byte array
-     */
-    private void intToLittleEndianBytes(int in, byte[] out) {
-        if(out == null) return;
-        if(out.length > 4) return;
-        for(int i=0; i<out.length; i++) {
-            out[i] = (byte)((in >> (i*8)) & 0x000000FF);
-        }
-    }
-
-    /**
-     * Transfers little endian byte array to int
-     * @param in 4 or less length byte array
-     * @return integer value
-     */
-    private int littleEndianBytesToInt(byte[] in) {
-        if(in == null) return 0;
-        if(in.length > 4) return 0;
-        int ret=0;
-        for(int i=0; i<in.length; i++) {
-            ret |= (((int)in[i]) & 0x000000FF) << (i*8);
-        }
-        return ret;
-    }
 
     /**
      * Enables CP210x
@@ -463,11 +383,51 @@ public class UartCp210x extends SerialCommunicator{
         return ret;
     }
 
-    /**
-     * Sets Data bits
-     * @param dataBits data bits e.g. UartConfig.DATA_BITS8
-     * @return true : successful, false : fail
-     */
+    @Override
+    public boolean setBaudrate(int baudrate) {
+        if (baudrate <= 300)            baudrate = 300;
+        else if (baudrate <= 600)       baudrate = 600;
+        else if (baudrate <= 1200)      baudrate = 1200;
+        else if (baudrate <= 1800)      baudrate = 1800;
+        else if (baudrate <= 2400)      baudrate = 2400;
+        else if (baudrate <= 4000)      baudrate = 4000;
+        else if (baudrate <= 4803)      baudrate = 4800;
+        else if (baudrate <= 7207)      baudrate = 7200;
+        else if (baudrate <= 9612)      baudrate = 9600;
+        else if (baudrate <= 14428)     baudrate = 14400;
+        else if (baudrate <= 16062)     baudrate = 16000;
+        else if (baudrate <= 19250)     baudrate = 19200;
+        else if (baudrate <= 28912)     baudrate = 28800;
+        else if (baudrate <= 38601)     baudrate = 38400;
+        else if (baudrate <= 51558)     baudrate = 51200;
+        else if (baudrate <= 56280)     baudrate = 56000;
+        else if (baudrate <= 58053)     baudrate = 57600;
+        else if (baudrate <= 64111)     baudrate = 64000;
+        else if (baudrate <= 77608)     baudrate = 76800;
+        else if (baudrate <= 117028)    baudrate = 115200;
+        else if (baudrate <= 129347)    baudrate = 128000;
+        else if (baudrate <= 156868)    baudrate = 153600;
+        else if (baudrate <= 237832)    baudrate = 230400;
+        else if (baudrate <= 254234)    baudrate = 250000;
+        else if (baudrate <= 273066)    baudrate = 256000;
+        else if (baudrate <= 491520)    baudrate = 460800;
+        else if (baudrate <= 567138)    baudrate = 500000;
+        else if (baudrate <= 670254)    baudrate = 576000;
+        else if (baudrate < 1000000)    baudrate = 921600;
+        else if (baudrate > 2000000)    baudrate = 2000000;
+
+        byte[] baudBytes = new byte[4];
+        intToLittleEndianBytes(baudrate, baudBytes);
+        int ret = cp210xSetConfig(CP210X_SET_BAUDRATE, baudBytes, 4);
+        if(ret < 0) { 
+            if(DEBUG_SHOW) { Log.d(TAG, "Fail to setBaudrate"); }
+            return false;
+        }
+        mUartConfig.baudrate = baudrate;
+        return true;
+    }
+
+    @Override
     public boolean setDataBits(int dataBits) {
         int bits;
         byte[] buf = new byte[2];
@@ -502,11 +462,8 @@ public class UartCp210x extends SerialCommunicator{
         return true;
     }
 
-    /**
-     * Sets Parity bit
-     * @param parity parity bits e.g. UartConfig.PARITY_NONE
-     * @return true : successful, false : fail
-     */
+
+    @Override
     public boolean setParity(int parity) {
         int bits;
         byte[] buf = new byte[2];
@@ -554,11 +511,8 @@ public class UartCp210x extends SerialCommunicator{
         return true;
     }
 
-    /**
-     * Sets Stop bits
-     * @param stopBits stop bits e.g. UartConfig.STOP_BITS1
-     * @return true : successful, false : fail
-     */
+
+    @Override
     public boolean setStopBits(int stopBits) {
         int bits;
         byte[] buf = new byte[2];
@@ -705,4 +659,32 @@ public class UartCp210x extends SerialCommunicator{
     }
     //////////////////////////////////////////////////////////
 
+
+    /**
+     * Transfers int to little endian byte array
+     * @param in integer value
+     * @param out 4 or less length byte array
+     */
+    private void intToLittleEndianBytes(int in, byte[] out) {
+        if(out == null) return;
+        if(out.length > 4) return;
+        for(int i=0; i<out.length; i++) {
+            out[i] = (byte)((in >> (i*8)) & 0x000000FF);
+        }
+    }
+
+    /**
+     * Transfers little endian byte array to int
+     * @param in 4 or less length byte array
+     * @return integer value
+     */
+    private int littleEndianBytesToInt(byte[] in) {
+        if(in == null) return 0;
+        if(in.length > 4) return 0;
+        int ret=0;
+        for(int i=0; i<in.length; i++) {
+            ret |= (((int)in[i]) & 0x000000FF) << (i*8);
+        }
+        return ret;
+    }
 }
