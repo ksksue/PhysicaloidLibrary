@@ -21,7 +21,7 @@ Features
 - upload a firmware to an Arduino
 - support on Android 3.1 or higher (need USB Host API feature)
 - **does not require ROOT**
-- support USB-Serial protocols : CDC-ACM, FTDI
+- support USB-Serial protocols : CDC-ACM, FTDI, Silicon Labs CP210x
 - support uploading firmware protocols : STK500, STK500V2
 - open-source(Apache License 2.0)
 
