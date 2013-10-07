@@ -16,13 +16,10 @@
 
 package com.physicaloid.lib;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-
 import android.content.Context;
 import android.util.Log;
 
+import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.framework.AutoCommunicator;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.framework.Uploader;
@@ -30,8 +27,12 @@ import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+
 public class Physicaloid {
-    private static final boolean DEBUG_SHOW = true;
+    private static final boolean DEBUG_SHOW = true && BuildConfig.DEBUG;
     private static final String TAG = Physicaloid.class.getSimpleName();
 
     private Context mContext;
