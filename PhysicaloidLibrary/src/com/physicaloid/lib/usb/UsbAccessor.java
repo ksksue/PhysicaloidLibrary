@@ -27,6 +27,8 @@ import android.hardware.usb.UsbManager;
 import android.util.Log;
 import android.util.SparseArray;
 
+import com.physicaloid.BuildConfig;
+
 /*
  * USB Hierarchy Accessor
  *  Enum singleton pattern
@@ -34,7 +36,7 @@ import android.util.SparseArray;
 public enum UsbAccessor {
     INSTANCE;   // enum singleton
 
-    private static final boolean DEBUG_SHOW = true;
+    private static final boolean DEBUG_SHOW = true && BuildConfig.DEBUG;
 
     private static final String TAG = UsbAccessor.class.getSimpleName();
 

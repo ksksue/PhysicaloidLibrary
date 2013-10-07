@@ -16,24 +16,25 @@
 
 package com.physicaloid.lib.usb.driver.uart;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.util.Log;
 
+import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.UsbVidList;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.usb.UsbCdcConnection;
 import com.physicaloid.lib.usb.UsbVidPid;
 import com.physicaloid.misc.RingBuffer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UartCdcAcm extends SerialCommunicator{
     private static final String TAG = UartCdcAcm.class.getSimpleName();
 
-    private static final boolean DEBUG_SHOW = false;
+    private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
     private static final int DEFAULT_BAUDRATE = 9600;
 
     private UsbCdcConnection mUsbConnetionManager;

@@ -29,6 +29,7 @@ package com.physicaloid.lib.programmer.avr;
 
 import android.util.Log;
 
+import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.framework.SerialCommunicator;
 
 import java.util.Arrays;
@@ -205,11 +206,11 @@ public class Stk500 extends UploadProtocol{
 
     private static final String TAG = Stk500.class.getSimpleName();
 
-    private static final boolean DEBUG_NOT_SHOW         = true;
-    private static final boolean DEBUG_SHOW_SEND        = true & !DEBUG_NOT_SHOW;
-    private static final boolean DEBUG_SHOW_RECV        = true & !DEBUG_NOT_SHOW;
-    private static final boolean DEBUG_SHOW_DRAIN       = true & !DEBUG_NOT_SHOW;
-    private static final boolean DEBUG_SHOW_DUMP_LOGE   = true & !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_NOT_SHOW         = true || !BuildConfig.DEBUG;
+    private static final boolean DEBUG_SHOW_SEND        = true && !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_SHOW_RECV        = true && !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_SHOW_DRAIN       = true && !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_SHOW_DUMP_LOGE   = true && !DEBUG_NOT_SHOW;
 
     SerialCommunicator mComm;
     AvrConf mAVRConf;
