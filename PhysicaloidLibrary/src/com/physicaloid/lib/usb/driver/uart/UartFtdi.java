@@ -16,19 +16,20 @@
 
 package com.physicaloid.lib.usb.driver.uart;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.util.Log;
 
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.FT_Device;
+import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.misc.RingBuffer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UartFtdi extends SerialCommunicator {
-    private static final boolean DEBUG_SHOW = true;
+    private static final boolean DEBUG_SHOW = true && BuildConfig.DEBUG;
     private static final String TAG = UartFtdi.class.getSimpleName();
 
     private Context mContext;

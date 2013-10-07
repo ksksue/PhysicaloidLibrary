@@ -29,6 +29,7 @@ package com.physicaloid.lib.programmer.avr;
 
 import android.util.Log;
 
+import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid.UploadCallBack;
 import com.physicaloid.lib.framework.SerialCommunicator;
@@ -42,7 +43,7 @@ import java.io.InputStream;
 public class AvrUploader {
     private static final String TAG = AvrUploader.class.getSimpleName();
 
-    private static final boolean DEBUG_SHOW_HEXDUMP = false;
+    private static final boolean DEBUG_SHOW_HEXDUMP = false && BuildConfig.DEBUG;
 
     private UploadProtocol      mProg;
     private SerialCommunicator  mComm;

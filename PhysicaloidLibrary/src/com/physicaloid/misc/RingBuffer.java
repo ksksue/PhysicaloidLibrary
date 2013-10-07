@@ -18,11 +18,13 @@ package com.physicaloid.misc;
 
 import android.util.Log;
 
+import com.physicaloid.BuildConfig;
+
 public class RingBuffer{
     private static final String TAG = RingBuffer.class.getSimpleName();
 
-    private static final boolean DEBUG_SHOW_ADD = false;
-    private static final boolean DEBUG_SHOW_GET = false;
+    private static final boolean DEBUG_SHOW_ADD = false && BuildConfig.DEBUG;
+    private static final boolean DEBUG_SHOW_GET = false && BuildConfig.DEBUG;
 
     private int mRingBufSize;
     private byte[] mRingBuf;

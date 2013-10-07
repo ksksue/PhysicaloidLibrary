@@ -25,8 +25,10 @@ import android.hardware.usb.UsbInterface;
 import android.util.Log;
 import android.util.SparseArray;
 
+import com.physicaloid.BuildConfig;
+
 public class UsbCdcConnection {
-    private static final boolean DEBUG_SHOW = true;
+    private static final boolean DEBUG_SHOW = true && BuildConfig.DEBUG;
 
     private static final String TAG = UsbCdcConnection.class.getSimpleName();
 

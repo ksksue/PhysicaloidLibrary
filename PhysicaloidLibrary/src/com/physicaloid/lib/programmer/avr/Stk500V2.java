@@ -28,19 +28,22 @@
 package com.physicaloid.lib.programmer.avr;
 
 import android.util.Log;
+
+import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.framework.SerialCommunicator;
+
 import java.util.Arrays;
 
 public class Stk500V2 extends UploadProtocol{
     private static final String TAG = Stk500V2.class.getSimpleName();
 
-    private static final boolean DEBUG_NOT_SHOW             = true;
-    private static final boolean DEBUG_SHOW_READ            = true & !DEBUG_NOT_SHOW;
-    private static final boolean DEBUG_SHOW_WRITE           = true & !DEBUG_NOT_SHOW;
-    private static final boolean DEBUG_SHOW_COMMAND         = true & !DEBUG_NOT_SHOW;
-    private static final boolean DEBUG_SHOW_COMMAND_STATUS  = true & !DEBUG_NOT_SHOW;
-    private static final boolean DEBUG_SHOW_RECV            = true & !DEBUG_NOT_SHOW;
-    private static final boolean DEBUG_SHOW_GETSYNC         = true & !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_NOT_SHOW             = true || !BuildConfig.DEBUG;
+    private static final boolean DEBUG_SHOW_READ            = true && !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_SHOW_WRITE           = true && !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_SHOW_COMMAND         = true && !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_SHOW_COMMAND_STATUS  = true && !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_SHOW_RECV            = true && !DEBUG_NOT_SHOW;
+    private static final boolean DEBUG_SHOW_GETSYNC         = true && !DEBUG_NOT_SHOW;
 
     private static final int RETRIES                = 5;
 
