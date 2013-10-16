@@ -142,6 +142,7 @@ public class AvrUploader {
         }
 
         int writeOK = mProg.paged_write();
+        if(writeOK == 0) { return false; } // canceled
         if(writeOK < 0) {
             Log.e(TAG,"paged write failed ("+initOK+")");
             if(callback != null){ callback.onError(UploadErrors.PAGE_WRITE); }

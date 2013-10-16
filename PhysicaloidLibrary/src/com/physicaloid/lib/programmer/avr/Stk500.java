@@ -216,6 +216,12 @@ public class Stk500 extends UploadProtocol{
     AvrConf mAVRConf;
     AVRMem mAVRMem;
 
+    boolean mCanceled;
+
+    public Stk500() {
+        mCanceled = false;
+    }
+
     public void setSerial(SerialCommunicator comm) {
         mComm = comm;
     }
@@ -754,6 +760,11 @@ public class Stk500 extends UploadProtocol{
 */
 
         for (addr = 0; addr < n; addr += page_size) {
+            if(Thread.interrupted()) {
+                report_cancel();
+                return 0;
+            }
+
             report_progress((int)(addr*100/n));
 
             // MIB510 uses fixed blocks size of 256 bytes

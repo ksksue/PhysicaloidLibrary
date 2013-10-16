@@ -55,4 +55,9 @@ public abstract class UploadProtocol {
         if(callback == null) return;
         callback.onUploading(prog);
     }
+
+    protected void report_cancel() {
+        if(callback == null) return;
+        callback.onCancel();
+    }
 }

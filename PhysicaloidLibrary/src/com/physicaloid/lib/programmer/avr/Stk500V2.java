@@ -846,6 +846,11 @@ public class Stk500V2 extends UploadProtocol{
         last_addr=UINT_MAX;           /* impossible address */
 
         for (addr=0; addr < n_bytes; addr += page_size) {
+            if(Thread.interrupted()) {
+                report_cancel();
+                return 0;
+            }
+
             report_progress((int)(addr*100/n_bytes));
 
             if ((n_bytes-addr) < page_size) {

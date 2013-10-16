@@ -25,6 +25,7 @@ import android.widget.Toast;
 import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid;
 import com.physicaloid.lib.Physicaloid.UploadCallBack;
+//import com.physicaloid.lib.PhysicaloidFpga;
 import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 
@@ -42,12 +43,16 @@ public class PhysicaloidTestActivity extends Activity {
     private static final String UPLOAD_FILE_MEGA            = "/sdcard/arduino/serialtest.mega.hex";
     @SuppressLint("SdCardPath")
     private static final String UPLOAD_FILE_BALANDUINO      = "/sdcard/arduino/serialtest.balanduino.hex";
+    @SuppressLint("SdCardPath")
+    private static final String UPLOAD_FILE_FPGA            = "/sdcard/fpga/testtop.rbf";
 
     private static final String ASSET_FILE_NAME_UNO         = "Blink.uno.hex";
     private static final String ASSET_FILE_NAME_MEGA        = "Blink.mega.hex";
     private static final String ASSET_FILE_NAME_BALANDUINO  = "Blink.balanduino.hex";
+    private static final String ASSET_FILE_NAME_FPGA        = "testtop.rbf";
 
     Physicaloid mPhysicaloid;
+//    PhysicaloidFpga mPhysicaloid;
     Boards mSelectedBoard;
 
     Button btOpen;
@@ -78,6 +83,7 @@ public class PhysicaloidTestActivity extends Activity {
         updateViews(false);
 
         mPhysicaloid = new Physicaloid(this);
+//        mPhysicaloid = new PhysicaloidFpga(this);
 
         // Shows last selected board
         mBoardList = new ArrayList<Boards>();
@@ -169,6 +175,8 @@ public class PhysicaloidTestActivity extends Activity {
             assetFileName = ASSET_FILE_NAME_MEGA;
         } else if(mSelectedBoard == Boards.BALANDUINO) {
             assetFileName = ASSET_FILE_NAME_BALANDUINO;
+        } else if(mSelectedBoard == Boards.PHYSICALOID_FPGA_ONE) {
+            assetFileName = ASSET_FILE_NAME_FPGA;
         } else {
             assetFileName = ASSET_FILE_NAME_UNO;
         }
@@ -179,6 +187,10 @@ public class PhysicaloidTestActivity extends Activity {
         } catch (IOException e) {
             Log.e(TAG, e.toString());
         }
+    }
+
+    public void onClickCancelUpload(View v) {
+        mPhysicaloid.cancelUpload();
     }
 
     UploadCallBack mUploadCallback = new UploadCallBack() {
@@ -201,7 +213,12 @@ public class PhysicaloidTestActivity extends Activity {
                 tvAppend(tvRead, "Upload fail\n");
             }
         }
-        
+
+        @Override
+        public void onCancel() {
+            tvAppend(tvRead, "Cancel uploading\n");
+        }
+
         @Override
         public void onError(UploadErrors err) {
             tvAppend(tvRead, "Error  : "+err.toString()+"\n");

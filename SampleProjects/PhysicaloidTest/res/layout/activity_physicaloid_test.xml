@@ -87,7 +87,7 @@
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/btOpen"
         android:onClick="onClickUpload"
-        android:text="Upload" />
+        android:text="Up" />
 
     <Button
         android:id="@+id/btUploadAsset"
@@ -97,7 +97,17 @@
         android:layout_alignBottom="@+id/btUpload"
         android:layout_toRightOf="@+id/btUpload"
         android:onClick="onClickUploadAsset"
-        android:text="UploadAsset" />
+        android:text="UpAsset" />
+
+    <Button
+        android:id="@+id/btCancelUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btUpload"
+        android:layout_alignBottom="@+id/btUpload"
+        android:layout_toRightOf="@+id/btUploadAsset"
+        android:onClick="onClickCancelUpload"
+        android:text="Cancel" />
 
     <Button
         android:id="@+id/btWrite"

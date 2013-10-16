@@ -40,6 +40,7 @@ public class Physicaloid {
 
     private SerialCommunicator mSerial;
     private Uploader mUploader;
+    private Thread mUploadThread;
 
     private UploadCallBack mCallBack;
     private InputStream mFileStream;
@@ -245,7 +246,7 @@ public class Physicaloid {
             serialIsNull = true;
         }
 
-        new Thread(new Runnable() {
+        mUploadThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 synchronized (LOCK) {
@@ -309,11 +310,26 @@ public class Physicaloid {
                     mUploader = null;
                 }}}
             }
-        }).start();
+        });
+
+        mUploadThread.start();
+    }
+
+    public void cancelUpload() {
+        if(mUploadThread == null){ return; }
+        mUploadThread.interrupt();
     }
 
     /**
-     * Callbacks of program process
+     * Callbacks of program process<br>
+     * normal process:<br>
+     *  onPreUpload() -> onUploading -> onPostUpload<br>
+     * cancel:<br>
+     *  onPreUpload() -> onUploading -> onCancel -> onPostUpload<br>
+     * error:<br>
+     *  onPreUpload   |<br>
+     *  onUploading   | -> onError<br>
+     *  onPostUpload  |<br>
      * @author keisuke
      *
      */
@@ -322,8 +338,9 @@ public class Physicaloid {
          * Callback methods
          */
         void onPreUpload();
-        void onUploading(int value);    // TODO: implement this method
+        void onUploading(int value);
         void onPostUpload(boolean success);
+        void onCancel();
         void onError(UploadErrors err);
     }
 
