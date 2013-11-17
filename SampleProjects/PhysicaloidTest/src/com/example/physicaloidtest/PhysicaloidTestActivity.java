@@ -25,7 +25,7 @@ import android.widget.Toast;
 import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid;
 import com.physicaloid.lib.Physicaloid.UploadCallBack;
-//import com.physicaloid.lib.PhysicaloidFpga;
+import com.physicaloid.lib.fpga.PhysicaloidFpga;
 import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 
@@ -52,7 +52,7 @@ public class PhysicaloidTestActivity extends Activity {
     private static final String ASSET_FILE_NAME_FPGA        = "testtop.rbf";
 
     Physicaloid mPhysicaloid;
-//    PhysicaloidFpga mPhysicaloid;
+    PhysicaloidFpga mPhysicaloidFpga;
     Boards mSelectedBoard;
 
     Button btOpen;
@@ -83,7 +83,6 @@ public class PhysicaloidTestActivity extends Activity {
         updateViews(false);
 
         mPhysicaloid = new Physicaloid(this);
-//        mPhysicaloid = new PhysicaloidFpga(this);
 
         // Shows last selected board
         mBoardList = new ArrayList<Boards>();
@@ -175,8 +174,17 @@ public class PhysicaloidTestActivity extends Activity {
             assetFileName = ASSET_FILE_NAME_MEGA;
         } else if(mSelectedBoard == Boards.BALANDUINO) {
             assetFileName = ASSET_FILE_NAME_BALANDUINO;
-        } else if(mSelectedBoard == Boards.PHYSICALOID_FPGA_ONE) {
+        } else if(mSelectedBoard == Boards.PERIDOT) {
             assetFileName = ASSET_FILE_NAME_FPGA;
+            PhysicaloidFpga physicaloidFpga = new PhysicaloidFpga(this);
+            try {
+                physicaloidFpga.upload(mSelectedBoard, getResources().getAssets().open(assetFileName), mUploadCallback);
+            } catch (RuntimeException e) {
+                Log.e(TAG, e.toString());
+            } catch (IOException e) {
+                Log.e(TAG, e.toString());
+            }
+            return;
         } else {
             assetFileName = ASSET_FILE_NAME_UNO;
         }

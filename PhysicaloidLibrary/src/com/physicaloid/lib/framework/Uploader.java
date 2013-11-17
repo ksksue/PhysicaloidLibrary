@@ -20,6 +20,7 @@ import java.io.InputStream;
 
 import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid.UploadCallBack;
+import com.physicaloid.lib.fpga.PhysicaloidFpgaConfigurator;
 import com.physicaloid.lib.programmer.avr.AvrUploader;
 import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
@@ -47,6 +48,8 @@ public class Uploader {
 
             ret = avrUploader.run(fileStream, board, callback);
 
+        } else if(board.uploadProtocol == Boards.UploadProtocols.ALTERA_FPGA_RBF) {
+            ret = new PhysicaloidFpgaConfigurator(comm).configuration(fileStream);
         }
 
         if(callback != null) {callback.onPostUpload(ret); }

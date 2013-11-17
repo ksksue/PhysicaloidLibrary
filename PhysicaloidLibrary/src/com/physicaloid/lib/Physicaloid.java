@@ -38,7 +38,7 @@ public class Physicaloid {
     private Context mContext;
     private Boards mBoard;
 
-    private SerialCommunicator mSerial;
+    protected SerialCommunicator mSerial;
     private Uploader mUploader;
     private Thread mUploadThread;
 
@@ -46,8 +46,8 @@ public class Physicaloid {
     private InputStream mFileStream;
 
     private static final Object LOCK = new Object();
-    private static final Object LOCK_WRITE = new Object();
-    private static final Object LOCK_READ = new Object();
+    protected static final Object LOCK_WRITE = new Object();
+    protected static final Object LOCK_READ = new Object();
 
     public Physicaloid(Context context) {
         this.mContext = context;
