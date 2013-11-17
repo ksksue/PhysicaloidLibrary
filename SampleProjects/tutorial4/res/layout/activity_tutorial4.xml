@@ -1,0 +1,105 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".Tutorial4Activity" >
+
+    <TextView
+        android:id="@+id/tvTopText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="how to set UART configurations" />
+
+    <Button
+        android:id="@+id/btOpen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/tvTopText"
+        android:onClick="onClickOpen"
+        android:text="Open" />
+
+    <Button
+        android:id="@+id/btClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btOpen"
+        android:layout_alignBottom="@+id/btOpen"
+        android:layout_toRightOf="@+id/btOpen"
+        android:onClick="onClickClose"
+        android:text="Close" />
+
+    <EditText
+        android:id="@+id/etWrite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/btOpen"
+        android:ems="10" >
+
+        <requestFocus />
+    </EditText>
+
+    <TextView
+        android:id="@+id/tvRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/rgBaudrate" />
+
+    <Button
+        android:id="@+id/btUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btClose"
+        android:layout_alignBottom="@+id/btClose"
+        android:layout_toRightOf="@+id/btClose"
+        android:onClick="onClickUpload"
+        android:text="Upload" />
+
+    <Button
+        android:id="@+id/btWrite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/etWrite"
+        android:layout_alignBottom="@+id/etWrite"
+        android:layout_toRightOf="@+id/btUpload"
+        android:onClick="onClickWrite"
+        android:text="Write" />
+
+    <TextView
+        android:id="@+id/tvBaudrate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/etWrite"
+        android:text="baudrate settings" />
+
+    <RadioGroup
+        android:id="@+id/rgBaudrate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/tvBaudrate" >
+
+        <RadioButton
+            android:id="@+id/rb0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="9600" />
+
+        <RadioButton
+            android:id="@+id/rb1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="115200" />
+    </RadioGroup>
+
+</RelativeLayout>
