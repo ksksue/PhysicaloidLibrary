@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UartFtdi extends SerialCommunicator {
-    private static final boolean DEBUG_SHOW = true && BuildConfig.DEBUG;
+    private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
     private static final String TAG = UartFtdi.class.getSimpleName();
 
     private Context mContext;
