@@ -44,13 +44,11 @@ public class AutoCommunicator {
                         return new UartFtdi(context);
                     } else if(vid == UsbVidList.CP210X.getVid()) {
                         return new UartCp210x(context);
-                    } else {
-                        return new UartCdcAcm(context);
                     }
                 }
             }
         }
 
-        return null;
+        return new UartCdcAcm(context);
     }
 }
