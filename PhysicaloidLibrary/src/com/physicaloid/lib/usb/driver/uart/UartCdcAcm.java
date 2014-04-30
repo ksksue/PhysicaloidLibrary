@@ -50,6 +50,7 @@ public class UartCdcAcm extends SerialCommunicator{
     private UsbDeviceConnection mConnection;
     private UsbEndpoint mEndpointIn;
     private UsbEndpoint mEndpointOut;
+    private int mInterfaceNum;
 
     private boolean isOpened;
 
@@ -76,6 +77,7 @@ public class UartCdcAcm extends SerialCommunicator{
             mConnection     = mUsbConnetionManager.getConnection();
             mEndpointIn     = mUsbConnetionManager.getEndpointIn();
             mEndpointOut    = mUsbConnetionManager.getEndpointOut();
+            mInterfaceNum   = mUsbConnetionManager.getCdcAcmInterfaceNum();
             if(!init()) { return false; }
             if(!setBaudrate(DEFAULT_BAUDRATE)) {return false;}
             mBuffer.clear();
@@ -212,7 +214,7 @@ public class UartCdcAcm extends SerialCommunicator{
      */
     private boolean init() {
         if(mConnection == null) return false;
-        int ret = mConnection.controlTransfer(0x21, 0x22, 0x00, 0, null, 0, 0); // init CDC
+        int ret = mConnection.controlTransfer(0x21, 0x22, 0x00, mInterfaceNum, null, 0, 0); // init CDC
         if(ret < 0) { return false; }
         return true;
     }
@@ -234,7 +236,7 @@ public class UartCdcAcm extends SerialCommunicator{
         baudByte[1] = (byte) ((baudrate & 0x0000FF00) >> 8);
         baudByte[2] = (byte) ((baudrate & 0x00FF0000) >> 16);
         baudByte[3] = (byte) ((baudrate & 0xFF000000) >> 24);
-        int ret = mConnection.controlTransfer(0x21, 0x20, 0, 0, new byte[] {
+        int ret = mConnection.controlTransfer(0x21, 0x20, 0, mInterfaceNum, new byte[] {
                 baudByte[0], baudByte[1], baudByte[2], baudByte[3], 0x00, 0x00,
                 0x08}, 7, 100);
         if(ret < 0) { 
@@ -290,7 +292,7 @@ public class UartCdcAcm extends SerialCommunicator{
         if(rtsOn) {
             ctrlValue |= 0x0002;
         }
-        int ret = mConnection.controlTransfer(0x21, 0x22, ctrlValue, 0, null, 0, 100);
+        int ret = mConnection.controlTransfer(0x21, 0x22, ctrlValue, mInterfaceNum, null, 0, 100);
         if(ret < 0) { 
             if(DEBUG_SHOW) { Log.d(TAG, "Fail to setDtrRts"); }
             return false;

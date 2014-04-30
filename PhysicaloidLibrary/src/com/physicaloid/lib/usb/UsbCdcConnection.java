@@ -34,11 +34,14 @@ public class UsbCdcConnection {
 
     private UsbAccessor mUsbAccess;
 
+    private int mCdcAcmInterfaceNum;
+
     SparseArray<UsbCdcConnectionEp> mUsbConnectionEp;
 
     public UsbCdcConnection(Context context) {
         mUsbAccess = UsbAccessor.INSTANCE;
         mUsbAccess.init(context);
+        mCdcAcmInterfaceNum = 0;
         mUsbConnectionEp = new SparseArray<UsbCdcConnection.UsbCdcConnectionEp>();
     }
 
@@ -84,6 +87,7 @@ public class UsbCdcConnection {
                                     if(mUsbAccess.openDevice(devNum,intfNum,ch)) {
                                         if(DEBUG_SHOW){ Log.d(TAG, "Find VID:"+Integer.toHexString(usbdev.getVendorId())+", PID:"+Integer.toHexString(usbdev.getProductId())+", DevNum:"+devNum+", IntfNum:"+intfNum); }
                                         mUsbConnectionEp.put(ch,new UsbCdcConnectionEp(mUsbAccess.connection(ch), getEndpoint(devNum, intfNum, UsbConstants.USB_DIR_IN), getEndpoint(devNum, intfNum, UsbConstants.USB_DIR_OUT)));
+                                        mCdcAcmInterfaceNum = intfNum;
                                         return true;
                                     }
                                 }
@@ -119,6 +123,14 @@ public class UsbCdcConnection {
     public boolean close() {
         mUsbConnectionEp.clear();
         return mUsbAccess.closeAll();
+    }
+
+    /**
+     * Gets the CDC-ACM interface's number
+     * @return interface number
+     */
+    public int getCdcAcmInterfaceNum() {
+        return mCdcAcmInterfaceNum;
     }
 
     /**
