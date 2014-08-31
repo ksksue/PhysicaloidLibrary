@@ -37,13 +37,15 @@ public class UartCdcAcm extends SerialCommunicator{
     private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
     private static final int DEFAULT_BAUDRATE = 9600;
 
-    private UsbCdcConnection mUsbConnetionManager;
+    private UsbCdcConnection mUsbConnectionManager;
 
     private UartConfig mUartConfig;
-    private static final int RING_BUFFER_SIZE       = 1024;
+    private static final int RING_BUFFER_SIZE       = 4096;
     private static final int USB_READ_BUFFER_SIZE   = 256;
     private static final int USB_WRITE_BUFFER_SIZE  = 256;
     private RingBuffer mBuffer;
+    private byte[] wBuffer = new byte[USB_WRITE_BUFFER_SIZE];
+    private int wLen = 0;
 
     private boolean mReadThreadStop = true;
 
@@ -56,7 +58,7 @@ public class UartCdcAcm extends SerialCommunicator{
 
     public UartCdcAcm(Context context) {
         super(context);
-        mUsbConnetionManager = new UsbCdcConnection(context);
+        mUsbConnectionManager = new UsbCdcConnection(context);
         mUartConfig = new UartConfig();
         mBuffer = new RingBuffer(RING_BUFFER_SIZE);
         isOpened = false;
@@ -73,11 +75,11 @@ public class UartCdcAcm extends SerialCommunicator{
     }
 
     public boolean open(UsbVidPid ids) {
-        if(mUsbConnetionManager.open(ids,true)) {
-            mConnection     = mUsbConnetionManager.getConnection();
-            mEndpointIn     = mUsbConnetionManager.getEndpointIn();
-            mEndpointOut    = mUsbConnetionManager.getEndpointOut();
-            mInterfaceNum   = mUsbConnetionManager.getCdcAcmInterfaceNum();
+        if(mUsbConnectionManager.open(ids,true)) {
+            mConnection     = mUsbConnectionManager.getConnection();
+            mEndpointIn     = mUsbConnectionManager.getEndpointIn();
+            mEndpointOut    = mUsbConnectionManager.getEndpointOut();
+            mInterfaceNum   = mUsbConnectionManager.getCdcAcmInterfaceNum();
             if(!init()) { return false; }
             if(!setBaudrate(DEFAULT_BAUDRATE)) {return false;}
             mBuffer.clear();
@@ -92,18 +94,42 @@ public class UartCdcAcm extends SerialCommunicator{
     public boolean close() {
         stopRead();
         isOpened = false;
-        return mUsbConnetionManager.close();
+        return mUsbConnectionManager.close();
     }
 
     @Override
     public int read(byte[] buf, int size) {
-        return mBuffer.get(buf, size);
+        int r;
+        
+        synchronized(mBuffer) {
+            r = mBuffer.get(buf, size);
+        }
+        return r;
     }
 
     @Override
     public int write(byte[] buf, int size) {
         if(buf == null) { return 0; }
-        int offset = 0;
+        
+        if (size + wLen < USB_WRITE_BUFFER_SIZE) {
+            synchronized(wBuffer) {
+                System.arraycopy(buf, 0, wBuffer, wLen, size);
+                wLen += size;                   
+            }
+            return size;
+        }
+        
+        int r;
+        int offset;
+        synchronized(wBuffer) {
+            System.arraycopy(buf, 0, wBuffer, wLen, USB_WRITE_BUFFER_SIZE - wLen);
+            offset = USB_WRITE_BUFFER_SIZE - wLen;
+            r = mConnection.bulkTransfer(mEndpointOut, wBuffer, USB_WRITE_BUFFER_SIZE, 100);
+            wLen = 0;
+        }
+        if (r < 0)
+            return -1;
+
         int write_size;
         int written_size;
         byte[] wbuf = new byte[USB_WRITE_BUFFER_SIZE];
@@ -135,6 +161,7 @@ public class UartCdcAcm extends SerialCommunicator{
         if(mReadThreadStop) {
             mReadThreadStop = false;
             new Thread(mLoop).start();
+            new Thread(wLoop).start();
         }
     }
 
@@ -142,6 +169,8 @@ public class UartCdcAcm extends SerialCommunicator{
         @Override
         public void run() {
             int len=0;
+            int total = 0;
+            boolean shouldNotify = false;
             byte[] rbuf = new byte[USB_READ_BUFFER_SIZE];
             for (;;) {// this is the main loop for transferring
 
@@ -153,23 +182,41 @@ public class UartCdcAcm extends SerialCommunicator{
                 }
 
                 if (len > 0) {
-                    mBuffer.add(rbuf, len);
-                    onRead(len);
+                    synchronized(mBuffer) {
+                        mBuffer.add(rbuf, len);
+                    }
+                    shouldNotify = true;
+                    total += len;
                 }
+                if ((len<= 0 && shouldNotify) || len>=256) {
+                    onRead(total);
+                    total = 0;
+                    shouldNotify = false;
+                 }
 
                 if (mReadThreadStop) {
                     return;
                 }
-
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                }
-
             }
         } // end of run()
     }; // end of runnable
 
+    private Runnable wLoop = new Runnable() {
+        @Override
+        public void run() {
+            while (!mReadThreadStop) {// this is the main loop for transferring
+                synchronized(wBuffer) {                // Send data in write buffer
+                    mConnection.bulkTransfer(mEndpointOut, wBuffer, wLen, 100);
+                    wLen = 0;
+                }
+                try {
+                    Thread.sleep(50);
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                }
+             }
+        } // end of run()
+    }; // end of runnable
 
     /**
      * Sets Uart configurations
@@ -339,7 +386,9 @@ public class UartCdcAcm extends SerialCommunicator{
 
     @Override
     public void clearBuffer() {
-        mBuffer.clear();
+        synchronized(mBuffer) {
+            mBuffer.clear();
+        }
     }
 
     //////////////////////////////////////////////////////////
