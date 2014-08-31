@@ -290,7 +290,7 @@ public class Stk500 extends UploadProtocol{
                 }
             }
             endTime = System.currentTimeMillis();
-            if((endTime - startTime) > 1000) {break;}
+            if((endTime - startTime) > 400) {break;}
         }
         return retval;
     }
