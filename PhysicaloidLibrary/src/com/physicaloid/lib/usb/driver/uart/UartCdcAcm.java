@@ -37,7 +37,7 @@ public class UartCdcAcm extends SerialCommunicator{
     private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
     private static final int DEFAULT_BAUDRATE = 9600;
 
-    private UsbCdcConnection mUsbConnetionManager;
+    private UsbCdcConnection mUsbConnectionManager;
 
     private UartConfig mUartConfig;
     private static final int RING_BUFFER_SIZE       = 1024;
@@ -56,7 +56,7 @@ public class UartCdcAcm extends SerialCommunicator{
 
     public UartCdcAcm(Context context) {
         super(context);
-        mUsbConnetionManager = new UsbCdcConnection(context);
+        mUsbConnectionManager = new UsbCdcConnection(context);
         mUartConfig = new UartConfig();
         mBuffer = new RingBuffer(RING_BUFFER_SIZE);
         isOpened = false;
@@ -73,11 +73,11 @@ public class UartCdcAcm extends SerialCommunicator{
     }
 
     public boolean open(UsbVidPid ids) {
-        if(mUsbConnetionManager.open(ids,true)) {
-            mConnection     = mUsbConnetionManager.getConnection();
-            mEndpointIn     = mUsbConnetionManager.getEndpointIn();
-            mEndpointOut    = mUsbConnetionManager.getEndpointOut();
-            mInterfaceNum   = mUsbConnetionManager.getCdcAcmInterfaceNum();
+        if(mUsbConnectionManager.open(ids,true)) {
+            mConnection     = mUsbConnectionManager.getConnection();
+            mEndpointIn     = mUsbConnectionManager.getEndpointIn();
+            mEndpointOut    = mUsbConnectionManager.getEndpointOut();
+            mInterfaceNum   = mUsbConnectionManager.getCdcAcmInterfaceNum();
             if(!init()) { return false; }
             if(!setBaudrate(DEFAULT_BAUDRATE)) {return false;}
             mBuffer.clear();
@@ -92,7 +92,7 @@ public class UartCdcAcm extends SerialCommunicator{
     public boolean close() {
         stopRead();
         isOpened = false;
-        return mUsbConnetionManager.close();
+        return mUsbConnectionManager.close();
     }
 
     @Override
