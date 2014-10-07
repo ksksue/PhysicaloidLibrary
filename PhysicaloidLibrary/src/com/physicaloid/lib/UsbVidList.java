@@ -23,7 +23,8 @@ public enum UsbVidList {
     MBED_LPC11U24                   (0x0d28),
     MBED_FRDM_KL25Z_OPENSDA_PORT    (0x1357),
     MBED_FRDM_KL25Z_KL25Z_PORT      (0x15a2),
-    CP210X                          (0x10C4);
+    CP210X                          (0x10C4),
+	GR_SAKURA						(0x2129);
 
     int vid;
     private UsbVidList(int vid) {
