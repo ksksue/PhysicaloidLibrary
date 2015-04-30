@@ -26,47 +26,35 @@
 package cz.jaybee.intelhex;
 
 /**
- * Type of one record in Intel HEX file (type of line)
+ * First pass listener to calculate data address range for further use
  *
+ * @author riilabs
  * @author Jan Breuer
  * @license BSD 2-Clause
  */
-public enum IntelHexRecordType {
+public class RangeDetector implements IntelHexDataListener {
 
-    DATA(0x00),
-    EOF(0x01),
-    EXT_SEG(0x02),
-    START_SEG(0x03),
-    EXT_LIN(0x04),
-    START_LIN(0x05),
-    UNKNOWN(0xFF);
-    int id;
+    private final MemoryRegions regions = new MemoryRegions();
 
-    IntelHexRecordType(int id) {
-        this.id = id;
+    @Override
+    public void data(long address, byte[] data) {
+        regions.add(address, data.length);
     }
 
-    /**
-     * Convert enum value to integer
-     *
-     * @return
-     */
-    public int toInt() {
-        return id;
+    @Override
+    public void eof() {
+        regions.compact();
     }
 
-    /**
-     * Convert integer value to enum value
-     *
-     * @param id
-     * @return
-     */
-    public static IntelHexRecordType fromInt(int id) {
-        for (IntelHexRecordType d : IntelHexRecordType.values()) {
-            if (d.id == id) {
-                return d;
-            }
-        }
-        return IntelHexRecordType.UNKNOWN;
+    public void reset() {
+        regions.clear();
+    }
+
+    public Region getFullRangeRegion() {
+        return regions.getFullRangeRegion();
+    }
+    
+    public MemoryRegions getMemoryRegions() {
+        return regions;
     }
 }
