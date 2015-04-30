@@ -58,7 +58,7 @@ public class IntelHexFileToBuf {
     public void parse(InputStream is) throws FileNotFoundException, IOException, Exception {
 
         ihp = new IntelHexParser(is);
-        ihpd = new IntelHexParserRun(0, 0xFFFF);
+        ihpd = new IntelHexParserRun(0, 0xFFFFFF);
         ihp.setDataListener(ihpd);
 
         ihp.parse();
