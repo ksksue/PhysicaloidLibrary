@@ -161,10 +161,12 @@ public class UartCdcAcm extends SerialCommunicator{
                     return;
                 }
 
+				/*
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
                 }
+				*/
 
             }
         } // end of run()
