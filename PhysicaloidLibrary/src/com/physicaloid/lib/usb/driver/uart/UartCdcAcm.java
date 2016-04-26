@@ -19,15 +19,15 @@ package com.physicaloid.lib.usb.driver.uart;
 import android.content.Context;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
+import android.hardware.usb.UsbRequest;
 import android.util.Log;
-
 import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.UsbVidList;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.usb.UsbCdcConnection;
 import com.physicaloid.lib.usb.UsbVidPid;
 import com.physicaloid.misc.RingBuffer;
-
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -141,30 +141,43 @@ public class UartCdcAcm extends SerialCommunicator{
     private Runnable mLoop = new Runnable() {
         @Override
         public void run() {
-            int len=0;
-            byte[] rbuf = new byte[USB_READ_BUFFER_SIZE];
+            int len;
+            // byte[] rbuf = new byte[USB_READ_BUFFER_SIZE];
+            byte[] rbuf = new byte[mEndpointIn.getMaxPacketSize()];
+            android.os.Process.setThreadPriority(-20);
+            UsbRequest response;
+            UsbRequest request = new UsbRequest();
+            request.initialize(mConnection, mEndpointIn);
+            ByteBuffer buf = ByteBuffer.wrap(rbuf);
             for (;;) {// this is the main loop for transferring
 
-                try {
-                    len = mConnection.bulkTransfer(mEndpointIn,
-                            rbuf, rbuf.length, 50);
-                } catch(Exception e) {
-                    Log.e(TAG, e.toString());
+                //try {
+                //    len = mConnection.bulkTransfer(mEndpointIn,
+                //            rbuf, rbuf.length, 1);
+                //} catch(Exception e) {
+                //    Log.e(TAG, e.toString());
+                //}
+                len = 0;
+                if (request.queue(buf, rbuf.length)) {
+                    response = mConnection.requestWait();
+                    if (response != null) {
+                        len = buf.position();
+                    }
+                    if (len > 0) {
+                        mBuffer.add(rbuf, len);
+                        onRead(len);
+                    }
                 }
 
-                if (len > 0) {
-                    mBuffer.add(rbuf, len);
-                    onRead(len);
-                }
 
                 if (mReadThreadStop) {
                     return;
                 }
 
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                }
+             //   try {
+             //       Thread.sleep(1);
+             //   } catch (InterruptedException e) {
+             //   }
 
             }
         } // end of run()
@@ -177,7 +190,7 @@ public class UartCdcAcm extends SerialCommunicator{
      * @return true : successful, false : fail
      */
     public boolean setUartConfig(UartConfig config) {
-        boolean res = true;
+        boolean res;
         boolean ret = true;
         if(mUartConfig.baudrate != config.baudrate) {
             res = setBaudrate(config.baudrate);
@@ -239,7 +252,7 @@ public class UartCdcAcm extends SerialCommunicator{
         int ret = mConnection.controlTransfer(0x21, 0x20, 0, mInterfaceNum, new byte[] {
                 baudByte[0], baudByte[1], baudByte[2], baudByte[3], 0x00, 0x00,
                 0x08}, 7, 100);
-        if(ret < 0) { 
+        if(ret < 0) {
             if(DEBUG_SHOW) { Log.d(TAG, "Fail to setBaudrate"); }
             return false;
         }
@@ -293,7 +306,7 @@ public class UartCdcAcm extends SerialCommunicator{
             ctrlValue |= 0x0002;
         }
         int ret = mConnection.controlTransfer(0x21, 0x22, ctrlValue, mInterfaceNum, null, 0, 100);
-        if(ret < 0) { 
+        if(ret < 0) {
             if(DEBUG_SHOW) { Log.d(TAG, "Fail to setDtrRts"); }
             return false;
         }

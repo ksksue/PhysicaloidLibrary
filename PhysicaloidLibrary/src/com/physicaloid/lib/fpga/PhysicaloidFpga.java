@@ -1,9 +1,8 @@
 package com.physicaloid.lib.fpga;
 
 import android.content.Context;
-
-import com.physicaloid.lib.Physicaloid;
 import com.physicaloid.BuildConfig;
+import com.physicaloid.lib.Physicaloid;
 
 public class PhysicaloidFpga extends Physicaloid {
     @SuppressWarnings("unused")

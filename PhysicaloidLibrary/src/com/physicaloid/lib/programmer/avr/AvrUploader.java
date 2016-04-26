@@ -28,12 +28,10 @@
 package com.physicaloid.lib.programmer.avr;
 
 import android.util.Log;
-
 import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid.UploadCallBack;
 import com.physicaloid.lib.framework.SerialCommunicator;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -100,7 +98,7 @@ public class AvrUploader {
         mProg.setCallback(callback);
 
         /////////////////////////////////////////////////////////////////
-        // AVRタイプの定数セット
+        // AVRタイプの定数セット  AVR type of constant set
         /////////////////////////////////////////////////////////////////
         try {
             setConfig(board); // .hexを読む前に実行すること(AVRMemがnewされない)
@@ -110,18 +108,19 @@ public class AvrUploader {
         }
 
         /////////////////////////////////////////////////////////////////
-        // ファイル読み込み
+        // ファイル読み込み File read
         /////////////////////////////////////////////////////////////////
         try {
             getFileToBuf(hexFile);
         } catch(Exception e) {
+            Log.d(TAG, "********* ERROR ********* " + e.toString());
             mIntelHex = null;
             if(callback != null){ callback.onError(UploadErrors.HEX_FILE_OPEN); }
             return false;
         }
 
         /////////////////////////////////////////////////////////////////
-        // 書込みスタート
+        // 書込みスタート  Writing start
         /////////////////////////////////////////////////////////////////
         mProg.setConfig(mAVRConf, mAVRMem);
         mProg.open();

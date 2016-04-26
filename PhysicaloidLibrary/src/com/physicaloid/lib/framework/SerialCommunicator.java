@@ -16,10 +16,9 @@
 
 package com.physicaloid.lib.framework;
 
-import com.physicaloid.lib.usb.driver.uart.UartConfig;
-import com.physicaloid.lib.usb.driver.uart.ReadLisener;
-
 import android.content.Context;
+import com.physicaloid.lib.usb.driver.uart.ReadLisener;
+import com.physicaloid.lib.usb.driver.uart.UartConfig;
 
 public abstract class SerialCommunicator {
 

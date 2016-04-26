@@ -1,12 +1,10 @@
 package com.physicaloid.lib.fpga;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import android.util.Log;
-
 import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.framework.SerialCommunicator;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class PhysicaloidFpgaConfigurator {
 
@@ -28,15 +26,15 @@ public class PhysicaloidFpgaConfigurator {
     public boolean configuration(InputStream is) {
         if(is == null) return false;
         byte[] rbuf = new byte[1];
-        int retlen=0;
-        boolean readStatus=true;
+        int retlen;
+        boolean readStatus=false;
 
         //////////////////////////////////////////////////////
         // Switch user mode and check PS mode on
         //////////////////////////////////////////////////////
         if(DEBUG_SHOW){Log.d(TAG,"Configuration Step.1 : Switch user mode.");}
 
-        for(int i=0; i<CONF_CHECK_RETRY; i++) {
+        for(int i=0; i<CONF_CHECK_RETRY && readStatus==false; i++) {
             readStatus = true;
             commandSwitchUserMode();
 
@@ -57,8 +55,6 @@ public class PhysicaloidFpgaConfigurator {
                 readStatus = false;
                 continue;
             }
-
-            if(readStatus) break;
         }
 
         if(!readStatus) return false;
@@ -124,7 +120,7 @@ public class PhysicaloidFpgaConfigurator {
         // Send RBF file
         //////////////////////////////////////////////////////
         if(DEBUG_SHOW){Log.d(TAG,"Configuration Step.4 : Send RBF file.");}
-        int totalBytes=0;
+        int totalBytes;
         try {
             totalBytes = is.available();
         } catch (IOException e) {

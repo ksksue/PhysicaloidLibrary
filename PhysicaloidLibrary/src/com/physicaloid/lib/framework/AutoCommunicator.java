@@ -18,7 +18,6 @@ package com.physicaloid.lib.framework;
 
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
-
 import com.physicaloid.lib.UsbVidList;
 import com.physicaloid.lib.usb.UsbAccessor;
 import com.physicaloid.lib.usb.driver.uart.UartCdcAcm;

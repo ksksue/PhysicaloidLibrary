@@ -17,7 +17,6 @@
 package com.physicaloid.misc;
 
 import android.util.Log;
-
 import com.physicaloid.BuildConfig;
 
 public class RingBuffer{
