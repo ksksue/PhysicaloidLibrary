@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.physicaloid.lib.framework;
 
 import com.physicaloid.lib.Boards;
@@ -25,35 +24,39 @@ import com.physicaloid.lib.usb.driver.uart.UartConfig;
 import java.io.InputStream;
 
 public class Uploader {
-    public Uploader() {}
-    public boolean upload(InputStream fileStream, Boards board, SerialCommunicator comm, UploadCallBack callback) {
-        boolean ret = false;
 
-        if(callback != null) {callback.onPreUpload(); }
-
-        if(board == null) {
-            if(callback != null) {
-                callback.onError(UploadErrors.AVR_CHIPTYPE);
-            }
-            return false;
+        public Uploader() {
         }
 
-        if(     board.uploadProtocol == Boards.UploadProtocols.STK500 ||
-                board.uploadProtocol == Boards.UploadProtocols.STK500V2) {
+        public boolean upload(InputStream fileStream, Boards board, SerialCommunicator comm, UploadCallBack callback) {
+                boolean ret = false;
 
-            AvrUploader avrUploader = new AvrUploader(comm);
+                if(callback != null) {
+                        callback.onPreUpload();
+                }
 
-            comm.setUartConfig(new UartConfig(board.uploadBaudrate, UartConfig.DATA_BITS8, UartConfig.STOP_BITS1, UartConfig.PARITY_NONE, false, false));
+                if(board == null) {
+                        if(callback != null) {
+                                callback.onError(UploadErrors.AVR_CHIPTYPE);
+                        }
+                } else {
+                        if(board.uploadProtocol == Boards.UploadProtocols.STK500
+                                || board.uploadProtocol == Boards.UploadProtocols.STK500V2) {
 
-            ret = avrUploader.run(fileStream, board, callback);
+                                AvrUploader avrUploader = new AvrUploader(comm);
 
-        } else if(board.uploadProtocol == Boards.UploadProtocols.ALTERA_FPGA_RBF) {
-            ret = new PhysicaloidFpgaConfigurator(comm).configuration(fileStream);
+                                comm.setUartConfig(new UartConfig(board.uploadBaudrate, UartConfig.DATA_BITS8, UartConfig.STOP_BITS1, UartConfig.PARITY_NONE, false, false));
+
+                                ret = avrUploader.run(fileStream, board, callback);
+
+                        } else if(board.uploadProtocol == Boards.UploadProtocols.ALTERA_FPGA_RBF) {
+                                ret = new PhysicaloidFpgaConfigurator(comm).configuration(fileStream);
+                        }
+                }
+                if(callback != null) {
+                        callback.onPostUpload(ret);
+                }
+
+                return ret;
         }
-
-        if(callback != null) {callback.onPostUpload(ret); }
-
-        return ret;
-    }
-
 }

@@ -34,7 +34,7 @@ import java.util.Arrays;
 public class Stk500V2 extends UploadProtocol {
 
         private static final String TAG = Stk500V2.class.getSimpleName();
-        private static final boolean DEBUG_NOT_SHOW = true || !BuildConfig.DEBUG;
+        private static final boolean DEBUG_NOT_SHOW = false || !BuildConfig.DEBUG;
         private static final boolean DEBUG_SHOW_READ = true && !DEBUG_NOT_SHOW;
         private static final boolean DEBUG_SHOW_WRITE = true && !DEBUG_NOT_SHOW;
         private static final boolean DEBUG_SHOW_COMMAND = true && !DEBUG_NOT_SHOW;
@@ -42,7 +42,7 @@ public class Stk500V2 extends UploadProtocol {
         private static final boolean DEBUG_SHOW_RECV = true && !DEBUG_NOT_SHOW;
         private static final boolean DEBUG_SHOW_GETSYNC = true && !DEBUG_NOT_SHOW;
         private static final boolean DEBUG_SHOW_DRAIN = true && !DEBUG_NOT_SHOW;
-        private static final int RETRIES = 5;
+        private static final int RETRIES = 1; // was 5. Why is it 5?
         // *** XPROG command constants ***
         private static final int CMD_XPROG = 0x50;
         private static final int CMD_XPROG_SETMODE = 0x51;
@@ -244,6 +244,8 @@ public class Stk500V2 extends UploadProtocol {
                         // send the command to the programmer
                         send(buf, len);
                         // attempt to read the status back
+                        // Need to zero buffer
+                        Arrays.fill(buf, 0, maxlen, (byte) 0);
                         status = recv(buf, maxlen);
 
                         if(DEBUG_SHOW_COMMAND_STATUS) {
@@ -596,35 +598,35 @@ public class Stk500V2 extends UploadProtocol {
                                                 Log.e(TAG,
                                                         "STK500V2.getsync(): found " + PROGRAMMER_NAME[mProgrammerType]
                                                         + " programmer");
-                                                return 0;
-                                        } else {
-                                                if(tries > RETRIES) {
-                                                        Log.e(TAG,
-                                                                "STK500V2.getsync(): can't communicate with device: resp="
-                                                                + Integer.toHexString((int) resp[0]));
-                                                        return -6;
-                                                } else {
-                                                        bRetry = true;
-                                                }
                                         }
-
-                                        // or if we got a timeout
-                                } else if(status == -1) {
-                                        if(tries > RETRIES) {
-                                                Log.e(TAG, "STK500V2.getsync(): timeout communicating with programmer");
-                                                return -1;
-                                        } else {
-                                                bRetry = true;
-                                        }
-
-                                        // or any other error
                                 } else {
                                         if(tries > RETRIES) {
-                                                Log.e(TAG, "STK500V2.getsync(): error communicating with programmer: ("
-                                                        + status + ")");
+                                                Log.e(TAG,
+                                                        "STK500V2.getsync(): can't communicate with device: resp="
+                                                        + Integer.toHexString((int) resp[0]));
+                                                return -6;
                                         } else {
                                                 bRetry = true;
                                         }
+                                }
+
+                                // or if we got a timeout
+                        } else if(status == -1) {
+                                if(tries > RETRIES) {
+                                        Log.e(TAG, "STK500V2.getsync(): timeout communicating with programmer");
+                                        return -1;
+                                } else {
+                                        bRetry = true;
+                                }
+
+                                // or any other error
+                        } else {
+                                if(tries > RETRIES) {
+                                        Log.e(TAG, "STK500V2.getsync(): error communicating with programmer: ("
+                                                + status + ")");
+                                        return -1;
+                                } else {
+                                        bRetry = true;
                                 }
                         } // end of if (status > 0)
                 } // end of while(bRetry)
@@ -994,8 +996,43 @@ public class Stk500V2 extends UploadProtocol {
 
         @Override
         public int check_sig_bytes() {
-                // TODO : implement
-                return 0;
+                // two ways to do this.
+                // CMD_READ_SIGNATURE_ISP
+                // and
+                // CMD_SPI_MULTI
+
+                byte[] buf = new byte[16];
+                int result = 0;
+                byte i;
+                for(i = 0; i < 3; i++) {
+                        buf[0] = CMD_READ_SIGNATURE_ISP;
+                        buf[1] = 0; // what
+                        buf[2] = 0; //      goes
+                        buf[3] = 0; //           here?
+                        buf[4] = i; // signature index [0-2]
+                        result = command(buf, 5, buf.length);
+                        // CMD_READ_SIGNATURE_ISP 0
+                        // STATUS_CMD_OK 1
+                        // data 2
+                        // STATUS_CMD_OK 3
+                        // status should always return 10
+                        if(result != 10 || mAVRConf.signature[i] != buf[2] || buf[0] != CMD_READ_SIGNATURE_ISP) {
+                                if(buf[0] != CMD_READ_SIGNATURE_ISP) {
+                                        Log.e(TAG,"check signature failed not CMD_READ_SIGNATURE_ISP ("+buf[2]+ " != "+CMD_READ_SIGNATURE_ISP+")");
+                                        result = 1; // command not matching!
+                                } else if(result == 10) {
+                                        Log.e(TAG,"check signature failed, signature mismatch ("+mAVRConf.signature[i]+ " != "+buf[2]+")");
+                                        result = 2; // signature not matching!
+                                } else {
+                                        Log.e(TAG,"check signature failed, short packet ("+result+ " != 10)");
+                                        result = 3;
+                                }
+                                break;
+                        } else {
+                                result = 0;
+                        }
+                }
+                return result;
         }
 
         @Override
