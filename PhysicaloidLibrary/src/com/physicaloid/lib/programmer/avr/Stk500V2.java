@@ -34,7 +34,7 @@ import java.util.Arrays;
 public class Stk500V2 extends UploadProtocol {
 
         private static final String TAG = Stk500V2.class.getSimpleName();
-        private static final boolean DEBUG_NOT_SHOW = false || !BuildConfig.DEBUG;
+        private static final boolean DEBUG_NOT_SHOW = true || !BuildConfig.DEBUG;
         private static final boolean DEBUG_SHOW_READ = true && !DEBUG_NOT_SHOW;
         private static final boolean DEBUG_SHOW_WRITE = true && !DEBUG_NOT_SHOW;
         private static final boolean DEBUG_SHOW_COMMAND = true && !DEBUG_NOT_SHOW;
