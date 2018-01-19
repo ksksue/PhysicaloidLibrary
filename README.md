@@ -6,7 +6,7 @@ Android Library for communicating with physical-computing boards (e.g.Arduino, m
 ![Android x Arduino](https://lh5.googleusercontent.com/-weC-lA-1rdw/UeaCzIrWR3I/AAAAAAAACno/u-ZapAmzkz8/s640/android_arduino.jpg)
 
 
-Users does not need to download an Arduino sketch from a web site.
+Users do not need to download an Arduino sketch from a web site.
 ![Download sketch](https://lh3.googleusercontent.com/-Hh-vISkTL6w/UeaC5moml2I/AAAAAAAACn8/g7Dozio1QrE/s640/physicaloid_download.png)
 
 
@@ -18,11 +18,12 @@ Features
 -----------------
 - Android Java library project
 - USB-Serial communication
+- WiFi-Serial communication to ESP8266
 - upload a firmware to an Arduino
 - support on Android 3.1 or higher (need USB Host API feature)
 - **does not require ROOT**
-- support USB-Serial protocols : CDC-ACM, FTDI, Silicon Labs CP210x
-- support uploading firmware protocols : STK500, STK500V2
+- supports USB-Serial protocols : CDC-ACM, FTDI, Silicon Labs CP210x
+- supports uploading firmware protocols : STK500, STK500V2
 - open-source(Apache License 2.0)
 
 
