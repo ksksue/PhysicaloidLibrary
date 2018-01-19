@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  *
- * @author root
+ * @author xxxajk@gmail.com
  */
 public class UartWifi extends SerialCommunicator {
 

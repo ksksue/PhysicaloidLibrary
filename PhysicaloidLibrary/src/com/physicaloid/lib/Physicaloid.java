@@ -52,6 +52,7 @@ public class Physicaloid {
 
         /**
          * Default, USB only
+         *
          * @param context
          */
         public Physicaloid(Context context) {
@@ -63,6 +64,7 @@ public class Physicaloid {
 
         /**
          * Bluetooth, optional USB
+         *
          * @param context
          * @param u true = use USB
          * @param BlueName Name of bluetooth, null for automatic default
@@ -82,15 +84,27 @@ public class Physicaloid {
          * @param u true = use USB
          * @param Netdest e.g. "192.168.4.1" or a host name
          * @param Dport port number for data
-         * @param Cport  port number for controls
+         * @param Cport port number for controls
          */
         public Physicaloid(Context context, boolean u, String Netdest, int Dport, int Cport) {
                 USE_USB = u;
                 USE_WIFI = true;
                 USE_BLUETOOTH = false;
-                mNetdest = Netdest;
-                mDport = Dport;
-                mCport = Cport;
+                if(Dport > 0) {
+                        mDport = Dport;
+                } else {
+                        mDport = 9001;
+                }
+                if(Cport > 0) {
+                        mCport = Cport;
+                } else {
+                        mCport = mDport + 1;
+                }
+                if(mNetdest != null) {
+                        mNetdest = Netdest;
+                } else {
+                        mNetdest = "192.168.4.1";
+                }
                 this.mContext = context;
         }
 
@@ -100,9 +114,10 @@ public class Physicaloid {
          * @param context
          * @param u true = use USB
          * @param BlueName Name of bluetooth, null for automatic default
-         * @param Netdest e.g. "192.168.4.1" or a host name, null defaults to "192.168.4.1"
+         * @param Netdest e.g. "192.168.4.1" or a host name, null defaults to
+         * "192.168.4.1"
          * @param Dport port number for data, Zero = 9001
-         * @param Cport  port number for controls, Zero = Dport + 1
+         * @param Cport port number for controls, Zero = Dport + 1
          */
         public Physicaloid(Context context, boolean u, String BlueName, String Netdest, int Dport, int Cport) {
                 this.mContext = context;
@@ -110,14 +125,14 @@ public class Physicaloid {
                 USE_WIFI = true;
                 USE_BLUETOOTH = true;
                 if(Dport > 0) {
-                mDport = Dport;
-                }else {
+                        mDport = Dport;
+                } else {
                         mDport = 9001;
                 }
-                if(Cport >0) {
-                mCport = Cport;
+                if(Cport > 0) {
+                        mCport = Cport;
                 } else {
-                        mCport = mDport +1;
+                        mCport = mDport + 1;
                 }
                 if(mNetdest != null) {
                         mNetdest = Netdest;
