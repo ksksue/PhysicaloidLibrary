@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.physicloid.lib.wifi.driver.uart;
+package com.physicaloid.lib.wifi.driver.uart;
 
 import android.content.Context;
 import android.util.Log;

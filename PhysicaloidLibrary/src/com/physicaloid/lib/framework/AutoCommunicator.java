@@ -25,7 +25,7 @@ import com.physicaloid.lib.usb.UsbAccessor;
 import com.physicaloid.lib.usb.driver.uart.UartCdcAcm;
 import com.physicaloid.lib.usb.driver.uart.UartCp210x;
 import com.physicaloid.lib.usb.driver.uart.UartFtdi;
-import com.physicloid.lib.wifi.driver.uart.UartWifi;
+import com.physicaloid.lib.wifi.driver.uart.UartWifi;
 
 public class AutoCommunicator {
 
