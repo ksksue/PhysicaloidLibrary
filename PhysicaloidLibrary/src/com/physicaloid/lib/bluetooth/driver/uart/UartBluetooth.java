@@ -75,8 +75,6 @@ public class UartBluetooth extends SerialCommunicator {
                 @Override
                 @SuppressWarnings("CallToThreadDumpStack")
                 public void run() {
-                        DATA_keep_going = true;
-                        DATA_still_going = true;
                         while(DATA_keep_going) {
                                 try {
                                         DATA_still_going = false;
@@ -92,6 +90,9 @@ public class UartBluetooth extends SerialCommunicator {
 
         @SuppressWarnings({"SleepWhileInLoop", "CallToThreadDumpStack"})
         private boolean init() {
+                DATA_keep_going = true;
+                DATA_still_going = true;
+
                 Log.d(TAG, "********************* Bluetooth Connecting DATA **************");
                 new Thread(connect_DATA).start();
                 Log.d(TAG, "********************* Bluetooth WAITING **************");

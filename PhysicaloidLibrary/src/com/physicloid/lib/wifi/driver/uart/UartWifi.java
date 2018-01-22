@@ -84,8 +84,6 @@ public class UartWifi extends SerialCommunicator {
                 @SuppressWarnings("CallToThreadDumpStack")
                 public void run() {
 
-                        CTRL_keep_going = true;
-                        CTRL_still_going = true;
                         while(CTRL_keep_going) {
                                 try {
                                         serverAddr = InetAddress.getByName(SERVER_IP);
@@ -110,8 +108,6 @@ public class UartWifi extends SerialCommunicator {
                 @Override
                 @SuppressWarnings("CallToThreadDumpStack")
                 public void run() {
-                        DATA_keep_going = true;
-                        DATA_still_going = true;
                         while(DATA_keep_going) {
                                 try {
                                         serverAddr = InetAddress.getByName(SERVER_IP);
@@ -137,6 +133,10 @@ public class UartWifi extends SerialCommunicator {
                 new Thread(connect_DATA).start();
                 Log.d(TAG, "********************* WiFi WAITING **************");
 
+                        CTRL_keep_going = true;
+                        CTRL_still_going = true;
+                        DATA_keep_going = true;
+                        DATA_still_going = true;
                 // timeout after how many seconds? How about 30?
                 int timeout = (30 * 1000) / 50;
                 while(CTRL_still_going && DATA_still_going && (timeout > 0)) {
