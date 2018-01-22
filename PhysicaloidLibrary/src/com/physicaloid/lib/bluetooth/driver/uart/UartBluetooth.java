@@ -4,6 +4,8 @@
  */
 package com.physicaloid.lib.bluetooth.driver.uart;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.util.Log;
@@ -43,6 +45,8 @@ public class UartBluetooth extends SerialCommunicator {
         volatile boolean DATA_still_going = true;
         private DataOutputStream DATA_OUT;
         private DataInputStream DATA_IN;
+        private BluetoothAdapter mBluetoothAdapter;
+        private BluetoothServerSocket serverSocket;
 
         public UartBluetooth(Context context, String BlueName) {
                 super(context);
@@ -77,8 +81,17 @@ public class UartBluetooth extends SerialCommunicator {
                 public void run() {
                         while(DATA_keep_going) {
                                 try {
-                                        DATA_still_going = false;
-                                        return;
+                                        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                                        if(mBluetoothAdapter != null) {
+                                                if(mBluetoothAdapter.isEnabled()) {
+                                                        serverSocket = mBluetoothAdapter.listenUsingRfcommWithServiceRecord(mBlueName, uu);
+                                                        DATA_socket = serverSocket.accept();
+                                                        DATA_OUT = new DataOutputStream(DATA_socket.getOutputStream());
+                                                        DATA_IN = new DataInputStream(DATA_socket.getInputStream());
+                                                        DATA_still_going = false;
+                                                        return;
+                                                }
+                                        }
                                 } catch(Exception ex) {
                                         Log.d(TAG, ex.toString());
                                         ex.printStackTrace();
