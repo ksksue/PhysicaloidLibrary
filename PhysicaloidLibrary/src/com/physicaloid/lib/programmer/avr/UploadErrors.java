@@ -30,14 +30,14 @@ package com.physicaloid.lib.programmer.avr;
 public enum UploadErrors {
     // reference
     // http://stackoverflow.com/questions/446663/best-way-to-define-error-codes-strings-in-java
-    AVR_CHIPTYPE    (1,     "Unexpected chip type."),
-    SIGNATURE       (2,     "Incorrect signature."),
-    FILE_OPEN       (3,     "Cannot open file."),
+    AVR_CHIPTYPE    (1,     "Unknown chip type."),
+    SIGNATURE       (2,     "Incorrect MCU signature."),
+    FILE_OPEN       (3,     "Can't open firmware file."),
     HEX_FILE_OPEN   (4,     "Wrong .hex file."),
-    OPEN_DEVICE     (5,     "Cannot open."),
+    OPEN_DEVICE     (5,     "Can't open connection to MCU."),
     // These two can be retried by an additional reset attempt and start from the beginning.
-    CHIP_INIT       (6,     "Cannot initialize."),
-    PAGE_WRITE      (7,     "An unexpected error occurred while writing"),
+    CHIP_INIT       (6,     "Can't initialize MCU."),
+    PAGE_WRITE      (7,     "An unexpected error occurred while writing flash."),
     NO_ERROR        (0, "");
 
     private final int code;

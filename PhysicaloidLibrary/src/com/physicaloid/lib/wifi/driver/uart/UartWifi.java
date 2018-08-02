@@ -5,10 +5,14 @@
 package com.physicaloid.lib.wifi.driver.uart;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 import com.physicaloid.BuildConfig;
+import com.physicaloid.lib.Physicaloid;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
+import com.physicaloid.lib.usb.driver.uart.ReadListener;
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
 import com.physicaloid.misc.RingBuffer;
 import java.io.DataInputStream;
@@ -43,10 +47,22 @@ public class UartWifi extends SerialCommunicator {
         private DataOutputStream CTRL_OUT;
         private DataOutputStream DATA_OUT;
         private DataInputStream DATA_IN;
-        volatile boolean CTRL_keep_going = true;
-        volatile boolean CTRL_still_going = true;
-        volatile boolean DATA_keep_going = true;
-        volatile boolean DATA_still_going = true;
+        volatile boolean CTRL_keep_going = false;
+        volatile boolean CTRL_still_going = false;
+        volatile boolean DATA_keep_going = false;
+        volatile boolean DATA_still_going = false;
+        volatile Context me;
+
+        private boolean isNetworkConnected(Context context) {
+                //Log.d(TAG, "Network available?");
+                ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo netInfo = cm.getActiveNetworkInfo();
+                if(netInfo == null) {
+                        return false;
+                }
+                return (netInfo.isConnected() && netInfo.getType() == ConnectivityManager.TYPE_WIFI);
+                //return cm.getActiveNetworkInfo() != null;
+        }
 
         public UartWifi(Context context, String host, int Dport, int Cport) {
                 super(context);
@@ -61,19 +77,24 @@ public class UartWifi extends SerialCommunicator {
                 CTRL_OUT = null;
                 DATA_OUT = null;
                 DATA_IN = null;
+                me = context;
         }
 
         @Override
         public boolean open() {
-                if(!init()) {
-                        return false;
+                if(!isOpened) {
+                        if(!init()) {
+                                close();
+                                return false;
+                        }
+                        if(!setBaudrate(DEFAULT_BAUDRATE)) {
+                                close();
+                                return false;
+                        }
+                        mBuffer.clear();
+                        startRead();
+                        isOpened = true;
                 }
-                if(!setBaudrate(DEFAULT_BAUDRATE)) {
-                        return false;
-                }
-                mBuffer.clear();
-                startRead();
-                isOpened = true;
                 return true;
         }
         private Runnable connect_CTRL = new Runnable() {
@@ -83,24 +104,24 @@ public class UartWifi extends SerialCommunicator {
                 @Override
                 @SuppressWarnings("CallToThreadDumpStack")
                 public void run() {
-
-                        while(CTRL_keep_going) {
+                        Log.d(TAG, "Network? " + isNetworkConnected(me));
+                        while(CTRL_keep_going && isNetworkConnected(me)) {
                                 try {
                                         serverAddr = InetAddress.getByName(SERVER_IP);
                                         CTRL_socket = new Socket(serverAddr, CTRL_PORT);
                                         CTRL_socket.setKeepAlive(true);
                                         CTRL_socket.setTcpNoDelay(true);
                                         CTRL_still_going = false;
+                                        CTRL_keep_going = false;
                                         return;
                                 } catch(Exception ex) {
-                                        Log.d(TAG, ex.toString());
-                                        ex.printStackTrace();
+                                        //Log.d(TAG, ex.toString());
+                                        //ex.printStackTrace();
                                 }
                         }
                         CTRL_still_going = false;
                 }
         };
-
         private Runnable connect_DATA = new Runnable() {
 
                 InetAddress serverAddr;
@@ -108,17 +129,18 @@ public class UartWifi extends SerialCommunicator {
                 @Override
                 @SuppressWarnings("CallToThreadDumpStack")
                 public void run() {
-                        while(DATA_keep_going) {
+                        while(DATA_keep_going && isNetworkConnected(me)) {
                                 try {
                                         serverAddr = InetAddress.getByName(SERVER_IP);
                                         DATA_socket = new Socket(serverAddr, DATA_PORT);
                                         DATA_socket.setKeepAlive(true);
                                         DATA_socket.setTcpNoDelay(true);
+                                        DATA_keep_going = false;
                                         DATA_still_going = false;
                                         return;
                                 } catch(Exception ex) {
-                                        Log.d(TAG, ex.toString());
-                                        ex.printStackTrace();
+                                        //Log.d(TAG, ex.toString());
+                                        //ex.printStackTrace();
                                 }
                         }
                         DATA_still_going = false;
@@ -127,19 +149,20 @@ public class UartWifi extends SerialCommunicator {
 
         @SuppressWarnings({"SleepWhileInLoop", "CallToThreadDumpStack"})
         private boolean init() {
+
+                CTRL_keep_going = true;
+                CTRL_still_going = true;
+                DATA_keep_going = true;
+                DATA_still_going = true;
                 Log.d(TAG, "********************* WiFi Connecting CTRL **************");
                 new Thread(connect_CTRL).start();
                 Log.d(TAG, "********************* WiFi Connecting DATA **************");
                 new Thread(connect_DATA).start();
                 Log.d(TAG, "********************* WiFi WAITING **************");
 
-                        CTRL_keep_going = true;
-                        CTRL_still_going = true;
-                        DATA_keep_going = true;
-                        DATA_still_going = true;
                 // timeout after how many seconds? How about 30?
                 int timeout = (30 * 1000) / 50;
-                while(CTRL_still_going && DATA_still_going && (timeout > 0)) {
+                while(CTRL_still_going && DATA_still_going && (timeout > 0) && isNetworkConnected(me)) {
                         try {
                                 // STALL APP :-)
                                 Thread.sleep(50);
@@ -147,7 +170,7 @@ public class UartWifi extends SerialCommunicator {
                         } catch(InterruptedException ex) {
                         }
                 }
-                if(timeout == 0) {
+                if(timeout <= 0) {
                         // did not connect, kill threads.
                         DATA_keep_going = false;
                         CTRL_keep_going = false;
@@ -157,7 +180,7 @@ public class UartWifi extends SerialCommunicator {
                                 } catch(InterruptedException ex) {
                                 }
                         }
-                Log.d(TAG, "********************* WiFi Timed out! **************");
+                        Log.d(TAG, "********************* WiFi Timed out! **************");
                         return false;
                 }
                 try {
@@ -165,6 +188,7 @@ public class UartWifi extends SerialCommunicator {
                         DATA_OUT = new DataOutputStream(DATA_socket.getOutputStream());
                         DATA_IN = new DataInputStream(DATA_socket.getInputStream());
                 } catch(Exception ex) {
+                        Log.d(TAG, "********************* WiFi DIED! **************");
                         Log.d(TAG, ex.toString());
                         ex.printStackTrace();
                         return false;
@@ -178,6 +202,14 @@ public class UartWifi extends SerialCommunicator {
         public boolean close() {
                 stopRead();
                 isOpened = false;
+                CTRL_keep_going = false;
+                DATA_keep_going = false;
+                while(DATA_still_going || CTRL_still_going) {
+                        try {
+                                Thread.sleep(50);
+                        } catch(InterruptedException ex) {
+                        }
+                }
                 if(CTRL_OUT != null) {
                         try {
                                 CTRL_OUT.close();
@@ -185,6 +217,8 @@ public class UartWifi extends SerialCommunicator {
                                 Log.d(TAG, ex.toString());
                                 ex.printStackTrace();
                         }
+                        CTRL_OUT = null;
+
                 }
                 if(DATA_OUT != null) {
                         try {
@@ -193,6 +227,7 @@ public class UartWifi extends SerialCommunicator {
                                 Log.d(TAG, ex.toString());
                                 ex.printStackTrace();
                         }
+                        DATA_OUT = null;
                 }
                 if(DATA_IN != null) {
                         try {
@@ -201,6 +236,7 @@ public class UartWifi extends SerialCommunicator {
                                 Log.d(TAG, ex.toString());
                                 ex.printStackTrace();
                         }
+                        DATA_IN = null;
                 }
                 if(CTRL_socket != null) {
                         try {
@@ -209,6 +245,7 @@ public class UartWifi extends SerialCommunicator {
                                 Log.d(TAG, ex.toString());
                                 ex.printStackTrace();
                         }
+                        CTRL_socket = null;
                 }
                 if(DATA_socket != null) {
                         try {
@@ -217,14 +254,7 @@ public class UartWifi extends SerialCommunicator {
                                 Log.d(TAG, ex.toString());
                                 ex.printStackTrace();
                         }
-                }
-                CTRL_keep_going = false;
-                DATA_keep_going = false;
-                while(DATA_still_going && CTRL_still_going) {
-                        try {
-                                Thread.sleep(50);
-                        } catch(InterruptedException ex) {
-                        }
+                        DATA_socket = null;
                 }
                 return true;
         }
@@ -237,12 +267,17 @@ public class UartWifi extends SerialCommunicator {
         @Override
         @SuppressWarnings("CallToThreadDumpStack")
         public int write(byte[] buf, int size) {
+                if(buf == null) {
+                        return 0;
+                }
                 try {
                         DATA_OUT.write(buf, 0, size);
                         DATA_OUT.flush();
                 } catch(Exception ex) {
+                        close();
                         Log.d(TAG, ex.toString());
                         ex.printStackTrace();
+                        return -1;
                 }
                 return size;
         }
@@ -255,8 +290,10 @@ public class UartWifi extends SerialCommunicator {
                         CTRL_OUT.write(b, 0, 5);
                         CTRL_OUT.flush();
                 } catch(Exception ex) {
+                        close();
                         Log.d(TAG, ex.toString());
                         ex.printStackTrace();
+                        return false;
                 }
                 mUartConfig.baudrate = baudrate;
                 return true;
@@ -287,6 +324,7 @@ public class UartWifi extends SerialCommunicator {
         @SuppressWarnings("CallToThreadDumpStack")
         public boolean setDtrRts(boolean dtrOn, boolean rtsOn) {
                 try {
+                        // TO-DO: rts... This is good enough for now, though.
                         if(dtrOn) {
                                 byte b[] = {1};
                                 CTRL_OUT.write(b, 0, 1);
@@ -296,8 +334,10 @@ public class UartWifi extends SerialCommunicator {
                         }
                         CTRL_OUT.flush();
                 } catch(Exception ex) {
+                        close();
                         Log.d(TAG, ex.toString());
                         ex.printStackTrace();
+                        return false;
                 }
                 mUartConfig.dtrOn = dtrOn;
                 mUartConfig.rtsOn = rtsOn;
@@ -395,13 +435,20 @@ public class UartWifi extends SerialCommunicator {
         //////////////////////////////////////////////////////////
         // Listener for reading uart
         //////////////////////////////////////////////////////////
-        private List<ReadLisener> uartReadListenerList = new ArrayList<ReadLisener>();
+        private List<ReadListener> uartReadListenerList = new ArrayList<ReadListener>();
         private boolean mStopReadListener = false;
 
         @Override
-        public void addReadListener(ReadLisener listener) {
+        public void addReadListener(ReadListener listener) {
                 uartReadListenerList.add(listener);
         }
+
+        @Override
+        @Deprecated
+        public void addReadListener(ReadLisener listener) {
+                addReadListener((ReadListener)listener);
+        }
+
 
         @Override
         public void clearReadListener() {
@@ -422,7 +469,7 @@ public class UartWifi extends SerialCommunicator {
                 if(mStopReadListener) {
                         return;
                 }
-                for(ReadLisener listener : uartReadListenerList) {
+                for(ReadListener listener : uartReadListenerList) {
                         listener.onRead(size);
                 }
         }
@@ -441,30 +488,56 @@ public class UartWifi extends SerialCommunicator {
         private Runnable mLoop = new Runnable() {
 
                 @Override
+                @SuppressWarnings("SleepWhileInLoop")
                 public void run() {
                         int len;
                         byte[] rbuf = new byte[READ_BUFFER_SIZE];
                         android.os.Process.setThreadPriority(-20);
                         for(;;) {
-                                try {
-                                        // this is the main loop for transferring
-                                        len = 0;
+                                if(mReadThreadStop) {
+                                        return;
+                                }
+                                if(CTRL_socket.isClosed() || DATA_socket.isClosed()) {
+                                        close();
+                                        try {
+                                                Thread.sleep(50);
+                                        } catch(InterruptedException ex) {
+                                        }
+                                } else {
+                                        try {
+                                                // this is the main loop for transferring
+                                                len = 0;
 
-                                        while(DATA_IN.available() > 0 && len < READ_BUFFER_SIZE) {
-                                                DATA_IN.read(rbuf, len, 1);
-                                                len++;
-                                        }
-                                        if(len > 0) {
-                                                mBuffer.add(rbuf, len);
-                                                onRead(len);
-                                        }
-                                        if(mReadThreadStop) {
+                                                while(DATA_IN.available() > 0 && len < READ_BUFFER_SIZE) {
+                                                        DATA_IN.read(rbuf, len, 1);
+                                                        len++;
+                                                }
+                                                if(len > 0) {
+                                                        mBuffer.add(rbuf, len);
+                                                        onRead(len);
+                                                }
+
+                                        } catch(IOException ex) {
+                                                close();
+                                                // TO-DO: Needs to broadcast that it has died
+                                                try {
+                                                        Thread.sleep(50);
+                                                } catch(InterruptedException exx) {
+                                                }
                                                 return;
                                         }
-                                } catch(IOException ex) {
-                                        // TO-DO: Needs to broadcast that it has died
                                 }
                         }
                 } // end of run()
         }; // end of runnable
+
+        @Override
+        public String getPhysicalConnectionName() {
+                return Physicaloid.WIFI_STRING;
+        }
+
+        @Override
+        public int getPhysicalConnectionType() {
+                return Physicaloid.WIFI;
+        }
 }

@@ -18,6 +18,7 @@ package com.physicaloid.lib.framework;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 import com.physicaloid.lib.UsbVidList;
 import com.physicaloid.lib.bluetooth.driver.uart.UartBluetooth;
@@ -25,6 +26,7 @@ import com.physicaloid.lib.usb.UsbAccessor;
 import com.physicaloid.lib.usb.driver.uart.UartCdcAcm;
 import com.physicaloid.lib.usb.driver.uart.UartCp210x;
 import com.physicaloid.lib.usb.driver.uart.UartFtdi;
+import com.physicaloid.lib.usb.driver.uart.UartWinCH34x;
 import com.physicaloid.lib.wifi.driver.uart.UartWifi;
 
 public class AutoCommunicator {
@@ -54,15 +56,21 @@ public class AutoCommunicator {
         }
 
         private boolean isNetworkConnected(Context context) {
-                Log.d(TAG, "Network available?");
+                //Log.d(TAG, "Network available?");
                 ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-                return cm.getActiveNetworkInfo() != null;
+                NetworkInfo netInfo = cm.getActiveNetworkInfo();
+                if(netInfo == null) {
+                        return false;
+                }
+                return (netInfo.isConnected() && netInfo.getType() == ConnectivityManager.TYPE_WIFI);
+                //return cm.getActiveNetworkInfo() != null;
         }
 
         /**
          * Scan and find a matching driver.
          *
          * @param context
+         *
          * @return SerialCommunicator driver object
          */
         public SerialCommunicator getSerialCommunicator(Context context) {
@@ -73,26 +81,36 @@ public class AutoCommunicator {
                         usbAccess.init(context);
                         for(UsbDevice device : usbAccess.manager().getDeviceList().values()) {
                                 int vid = device.getVendorId();
+                                int pid = device.getProductId();
                                 for(UsbVidList usbVid : UsbVidList.values()) {
                                         if(vid == usbVid.getVid()) {
                                                 if(vid == UsbVidList.FTDI.getVid()) {
-                                                        return new UartFtdi(context);
+                                                        sc = new UartFtdi(context);
                                                 } else if(vid == UsbVidList.CP210X.getVid()) {
-                                                        return new UartCp210x(context);
+                                                        sc = new UartCp210x(context);
+                                                } else if((vid == UsbVidList.DCCDUINO.getVid()) || (vid == UsbVidList.WCH.getVid())) {
+                                                        // check PID
+                                                        if(pid == 0x5523 || pid == 0x7523) {
+                                                                sc = new UartWinCH34x(context);
+                                                        }
                                                 }
                                         }
                                 }
                         }
-                        sc = new UartCdcAcm(context);
-                        if(!USE_WIFI && !USE_BLUETOOTH) {
-                                // early exit
-                                return sc;
+                        if(sc == null) {
+                                sc = new UartCdcAcm(context);
                         }
                         // check if it can actually open....
                         if(sc.open()) {
                                 Log.d(TAG, "*************************whut?");
                                 sc.close();
                                 return sc;
+                        } else {
+                                sc = null;
+                        }
+                        if(!USE_WIFI && !USE_BLUETOOTH) {
+                                // early exit
+                                return null;
                         }
                 }
 
@@ -107,6 +125,8 @@ public class AutoCommunicator {
                                         Log.d(TAG, "*************************whut?");
                                         sc.close();
                                         return sc;
+                                } else {
+                                        sc = null;
                                 }
                         } else {
                                 Log.d(TAG, "No Network available");
@@ -118,11 +138,12 @@ public class AutoCommunicator {
                         sc = new UartBluetooth(context, mBlueName);
                         // Last one so we don't need to check it.
                 }
-
-
-                // This should cause a safe failure.
-                if(sc == null) {
-                        sc = new UartCdcAcm(context);
+                if(sc.open()) {
+                        Log.d(TAG, "*************************whut?");
+                        sc.close();
+                        return sc;
+                } else {
+                        sc = null;
                 }
                 return sc;
         }

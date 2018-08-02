@@ -23,6 +23,7 @@ import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.framework.Uploader;
 import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
+import com.physicaloid.lib.usb.driver.uart.ReadListener;
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +31,30 @@ import java.io.InputStream;
 
 public class Physicaloid {
 
+        /**
+         * USB physical connection as a number
+         */
+        public static final int USB = 1;
+        /**
+         * WIFI physical connection as a number
+         */
+        public static final int WIFI = 2;
+        /**
+         * Bluetooth physical connection as a number
+         */
+        public static final int BLUETOOTH = 3;
+        /**
+         * USB physical connection as a string
+         */
+        public static final String USB_STRING = "USB";
+        /**
+         * WIFI physical connection as a string
+         */
+        public static final String WIFI_STRING = "WiFi";
+        /**
+         * Bluetooth physical connection as a string
+         */
+        public static final String BLUETOOTH_STRING = "BlueTooth";
         private static final boolean DEBUG_SHOW = true && BuildConfig.DEBUG;
         private static final String TAG = Physicaloid.class.getSimpleName();
         private Context mContext;
@@ -234,7 +259,7 @@ public class Physicaloid {
          * @return true : successful , false : fail
          * @throws RuntimeException
          */
-        public boolean addReadListener(ReadLisener listener) throws RuntimeException {
+        public boolean addReadListener(ReadListener listener) throws RuntimeException {
                 synchronized(LOCK_READ) {
                         if(mSerial == null) {
                                 return false;
@@ -247,6 +272,16 @@ public class Physicaloid {
                 }
         }
 
+        /**
+         * Adds read listener
+         *
+         * @param listener ReadListener
+         * @return true : successful , false : fail
+         * @throws RuntimeException
+         */
+        public boolean addReadListener(ReadLisener listener) throws RuntimeException {
+                return addReadListener((ReadListener) listener);
+        }
         /**
          * Clears read listener
          *
@@ -597,5 +632,25 @@ public class Physicaloid {
                         }
                         return mSerial.setDtrRts(dtrOn, rtsOn);
                 }
+        }
+
+        public String getDriverName() {
+                if(mSerial == null) {
+                        return "None";
+                }
+                return mSerial.getClass().getName();
+        }
+        public String getPhysicalConnectionName() {
+                if(mSerial == null) {
+                        return "No Physical Connection";
+                }
+                return mSerial.getPhysicalConnectionName();
+        }
+
+        public int getPhysicalConnectionType() {
+                if(mSerial == null) {
+                        return 0;
+                }
+                return mSerial.getPhysicalConnectionType();
         }
 }

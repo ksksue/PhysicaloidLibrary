@@ -12,6 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ *
+ * IMPORTANT NOTE!
+ * Even FTDI screwed up on the d2xx driver for the FT232RL and forgot to swap DTR and RTS,
+ * so we flip them in the driver for all of them.
+ *
+ * TO-DO: Nuke the need for the bullshit d2xx buggy driver.
  */
 package com.physicaloid.lib.usb.driver.uart;
 
@@ -19,6 +26,7 @@ import android.content.Context;
 import android.util.Log;
 import com.ftdi.j2xx.D2xxManager;
 import com.ftdi.j2xx.FT_Device;
+import com.physicaloid.lib.Physicaloid;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.misc.RingBuffer;
 import java.util.ArrayList;
@@ -40,6 +48,8 @@ public class UartFtdi extends SerialCommunicator {
         private static final int MAX_READBUF_SIZE = 256;
         private static final int READ_WAIT_MS = 1;
         private boolean mReadThreadStop;
+        private byte[] wbuf = new byte[USB_WRITE_BUFFER_SIZE];
+        private final Object ftDevLock = new Object();
 
         public UartFtdi(Context context) {
                 super(context);
@@ -52,57 +62,67 @@ public class UartFtdi extends SerialCommunicator {
                 } catch(D2xxManager.D2xxException ex) {
                         Log.e(TAG, ex.toString());
                 }
-                Log.d(TAG, "D2xxManager version: " + D2xxManager.getLibraryVersion());
+                Log.d(TAG, "D2xxManager version: " + Integer.toHexString(D2xxManager.getLibraryVersion()) + " " + D2xxManager.getLibraryVersion());
         }
 
         @Override
         public boolean open() {
-                if(ftD2xx == null) {
-                        try {
-                                ftD2xx = D2xxManager.getInstance(mContext);
-                        } catch(D2xxManager.D2xxException ex) {
-                                Log.e(TAG, ex.toString());
-                                return false;
-                        }
-                }
 
-                if(ftDev == null) {
-                        int devCount = ftD2xx.createDeviceInfoList(mContext);
-
-                        if(DEBUG_SHOW) {
-                                Log.d(TAG, "Device number : " + Integer.toString(devCount));
-                        }
-
-                        D2xxManager.FtDeviceInfoListNode[] deviceList = new D2xxManager.FtDeviceInfoListNode[devCount];
-                        ftD2xx.getDeviceInfoList(devCount, deviceList);
-
-                        if(devCount <= 0) {
-                                return false;
-                        }
-
-                        ftDev = ftD2xx.openByIndex(mContext, USB_OPEN_INDEX);
-                } else {
-                        if(ftD2xx.createDeviceInfoList(mContext) > 0) {
-                                synchronized(ftDev) {
-                                        ftDev = ftD2xx.openByIndex(mContext, USB_OPEN_INDEX);
+                try {
+                        if(ftD2xx == null) {
+                                try {
+                                        ftD2xx = D2xxManager.getInstance(mContext);
+                                } catch(D2xxManager.D2xxException ex) {
+                                        Log.e(TAG, ex.toString());
+                                        return false;
                                 }
                         }
-                }
 
-                if(ftDev.isOpen()) {
-                        synchronized(ftDev) {
-                                ftDev.resetDevice(); // flush any data from the device buffers
+                        if(ftDev == null) {
+                                int devCount = ftD2xx.createDeviceInfoList(mContext);
+
+                                if(DEBUG_SHOW) {
+                                        Log.d(TAG, "Device number : " + Integer.toString(devCount));
+                                }
+
+                                D2xxManager.FtDeviceInfoListNode[] deviceList = new D2xxManager.FtDeviceInfoListNode[devCount];
+                                ftD2xx.getDeviceInfoList(devCount, deviceList);
+
+                                if(devCount <= 0) {
+                                        return false;
+                                }
+
+                                ftDev = ftD2xx.openByIndex(mContext, USB_OPEN_INDEX);
+                        } else {
+                                if(ftD2xx.createDeviceInfoList(mContext) > 0) {
+                                        synchronized(ftDevLock) {
+                                                ftDev = ftD2xx.openByIndex(mContext, USB_OPEN_INDEX);
+                                        }
+                                }
                         }
-                        setBaudrate(mUartConfig.baudrate);
-                        if(DEBUG_SHOW) {
-                                Log.d(TAG, "An FTDI device is opened.");
+                        if(ftDev.isOpen()) {
+                                synchronized(ftDevLock) {
+                                        ftDev.resetDevice(); // flush any data from the device buffers
+                                        ftDev.setFlowControl(D2xxManager.FT_FLOW_NONE, (byte) 0, (byte) 0);
+                                }
+                                setBaudrate(mUartConfig.baudrate);
+                                if(DEBUG_SHOW) {
+                                        Log.d(TAG, "An FTDI device is opened.");
+                                }
+                                startRead();
+                                return true;
+                        } else {
+                                if(DEBUG_SHOW) {
+                                        Log.e(TAG, "Cannot open an FTDI device.");
+                                }
                         }
-                        startRead();
-                        return true;
-                } else {
-                        if(DEBUG_SHOW) {
-                                Log.e(TAG, "Cannot open an FTDI device.");
-                        }
+                } catch(NullPointerException ex) {
+                        // What has happened here is that the device is in some odd limbo state.
+                        // This apears to ONLY happen with the reboot fast option on some tablets.
+                        // We need to do a retry, but also exit gracefully.
+                        // Hopefully this will only occur under this particular
+                        // circumstance, and hopefully this fixes the issue.
+                        System.exit(-1);
                 }
                 return false;
         }
@@ -111,7 +131,7 @@ public class UartFtdi extends SerialCommunicator {
         public boolean close() {
                 if(ftDev != null) {
                         stopRead();
-                        synchronized(ftDev) {
+                        synchronized(ftDevLock) {
                                 ftDev.close();
                         }
                         if(DEBUG_SHOW) {
@@ -134,7 +154,6 @@ public class UartFtdi extends SerialCommunicator {
                 int offset = 0;
                 int write_size;
                 int written_size;
-                byte[] wbuf = new byte[USB_WRITE_BUFFER_SIZE];
 
                 while(offset < size) {
                         write_size = USB_WRITE_BUFFER_SIZE;
@@ -142,12 +161,17 @@ public class UartFtdi extends SerialCommunicator {
                         if(offset + write_size > size) {
                                 write_size = size - offset;
                         }
-                        System.arraycopy(buf, offset, wbuf, 0, write_size);
-
-                        synchronized(ftDev) {
-                                written_size = ftDev.write(wbuf, write_size);
+                        // optimization!
+                        if(offset == 0) {
+                                synchronized(ftDevLock) {
+                                        written_size = ftDev.write(buf, write_size);
+                                }
+                        } else {
+                                System.arraycopy(buf, offset, wbuf, 0, write_size);
+                                synchronized(ftDevLock) {
+                                        written_size = ftDev.write(wbuf, write_size);
+                                }
                         }
-
                         if(written_size < 0) {
                                 return -1;
                         }
@@ -170,14 +194,19 @@ public class UartFtdi extends SerialCommunicator {
         private Runnable mLoop = new Runnable() {
 
                 @Override
+                @SuppressWarnings("CallToThreadYield")
                 public void run() {
+                        try {
+                                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_FOREGROUND);
+                        } catch(Exception e) {
+                        }
                         int len;
                         byte[] rbuf = new byte[USB_READ_BUFFER_SIZE];
                         // byte[] rbuf = new byte[mEndpointIn.getMaxPacketSize()];
-                        android.os.Process.setThreadPriority(-20);
+                        //android.os.Process.setThreadPriority(-20);
                         for(;;) {// this is the main loop for transferring
-
-                                synchronized(ftDev) {
+                                // warning, BUG!!! NPE
+                                synchronized(ftDevLock) {
                                         len = ftDev.getQueueStatus();
                                 }
 
@@ -185,13 +214,13 @@ public class UartFtdi extends SerialCommunicator {
                                         if(len > MAX_READBUF_SIZE) {
                                                 len = MAX_READBUF_SIZE;
                                         }
-                                        synchronized(ftDev) {
+                                        synchronized(ftDevLock) {
                                                 len = ftDev.read(rbuf, len, READ_WAIT_MS); // You might want to set wait_ms.
                                         }
 
-                                        if(DEBUG_SHOW) {
-                                                Log.e(TAG, "read(" + len + "): " + toHexStr(rbuf, len));
-                                        }
+                                        //if(DEBUG_SHOW) {
+                                        //        Log.e(TAG, "read(" + len + "): " + toHexStr(rbuf, len));
+                                        //}
                                         mBuffer.add(rbuf, len);
                                         onRead(len);
 
@@ -203,10 +232,12 @@ public class UartFtdi extends SerialCommunicator {
                                         return;
                                 }
 
-                                try {
-                                        Thread.sleep(1);
-                                } catch(InterruptedException e) {
-                                }
+                                // needed?????
+                                //try {
+                                //        Thread.sleep(1);
+                                //} catch(InterruptedException e) {
+                                //}
+                                //Thread.yield();
 
                         }
                 } // end of run()
@@ -216,31 +247,31 @@ public class UartFtdi extends SerialCommunicator {
         public boolean setUartConfig(UartConfig config) {
                 boolean res;
                 boolean ret = true;
-                if(mUartConfig.baudrate != config.baudrate) {
-                        res = setBaudrate(config.baudrate);
-                        ret = ret && res;
-                }
+                //if(mUartConfig.baudrate != config.baudrate) {
+                res = setBaudrate(config.baudrate);
+                ret = ret && res;
+                //}
 
-                if(mUartConfig.dataBits != config.dataBits) {
-                        res = setDataBits(config.dataBits);
-                        ret = ret && res;
-                }
+                //if(mUartConfig.dataBits != config.dataBits) {
+                res = setDataBits(config.dataBits);
+                ret = ret && res;
+                //}
 
-                if(mUartConfig.parity != config.parity) {
-                        res = setParity(config.parity);
-                        ret = ret && res;
-                }
+                //if(mUartConfig.parity != config.parity) {
+                res = setParity(config.parity);
+                ret = ret && res;
+                //}
 
-                if(mUartConfig.stopBits != config.stopBits) {
-                        res = setStopBits(config.stopBits);
-                        ret = ret && res;
-                }
+                //if(mUartConfig.stopBits != config.stopBits) {
+                res = setStopBits(config.stopBits);
+                ret = ret && res;
+                //}
 
-                if(mUartConfig.dtrOn != config.dtrOn
-                        || mUartConfig.rtsOn != config.rtsOn) {
-                        res = setDtrRts(config.dtrOn, config.rtsOn);
-                        ret = ret && res;
-                }
+                //if(mUartConfig.dtrOn != config.dtrOn
+                //        || mUartConfig.rtsOn != config.rtsOn) {
+                res = setDtrRts(config.dtrOn, config.rtsOn);
+                ret = ret && res;
+                //}
 
                 return ret;
         }
@@ -250,7 +281,7 @@ public class UartFtdi extends SerialCommunicator {
                 if(ftDev == null) {
                         return false;
                 }
-                synchronized(ftDev) {
+                synchronized(ftDevLock) {
                         return ftDev.isOpen();
                 }
         }
@@ -261,7 +292,7 @@ public class UartFtdi extends SerialCommunicator {
                         return false;
                 }
                 boolean ret;
-                synchronized(ftDev) {
+                synchronized(ftDevLock) {
                         ret = ftDev.setBaudRate(baudrate);
                 }
                 if(ret) {
@@ -279,7 +310,7 @@ public class UartFtdi extends SerialCommunicator {
                 byte ftdiDataBits = convertFtdiDataBits(dataBits);
                 byte ftdiStopBits = convertFtdiStopBits(mUartConfig.stopBits);
                 byte ftdiParity = convertFtdiParity(mUartConfig.parity);
-                synchronized(ftDev) {
+                synchronized(ftDevLock) {
                         ret = ftDev.setDataCharacteristics(ftdiDataBits, ftdiStopBits, ftdiParity);
                 }
                 if(ret) {
@@ -297,7 +328,7 @@ public class UartFtdi extends SerialCommunicator {
                 byte ftdiDataBits = convertFtdiDataBits(mUartConfig.dataBits);
                 byte ftdiStopBits = convertFtdiStopBits(mUartConfig.stopBits);
                 byte ftdiParity = convertFtdiParity(parity);
-                synchronized(ftDev) {
+                synchronized(ftDevLock) {
                         ret = ftDev.setDataCharacteristics(ftdiDataBits, ftdiStopBits, ftdiParity);
                 }
                 if(ret) {
@@ -315,7 +346,7 @@ public class UartFtdi extends SerialCommunicator {
                 byte ftdiDataBits = convertFtdiDataBits(mUartConfig.dataBits);
                 byte ftdiStopBits = convertFtdiStopBits(stopBits);
                 byte ftdiParity = convertFtdiParity(mUartConfig.parity);
-                synchronized(ftDev) {
+                synchronized(ftDevLock) {
                         ret = ftDev.setDataCharacteristics(ftdiDataBits, ftdiStopBits, ftdiParity);
                 }
                 if(ret) {
@@ -329,18 +360,18 @@ public class UartFtdi extends SerialCommunicator {
                 if(ftDev == null) {
                         return false;
                 }
-                boolean retDtr = false;
-                boolean retRts = false;
+                boolean retDtr;// = false;
+                boolean retRts;// = false;
                 if(DEBUG_SHOW) {
                         Log.d(TAG, "setDtrRts " + Boolean.toString(dtrOn) + ", " + Boolean.toString(rtsOn));
                 }
                 if(dtrOn) {
-                        synchronized(ftDev) {
-                                retDtr = ftDev.setDtr();
+                        synchronized(ftDevLock) {
+                                retDtr = ftDev.setRts(); // note RTS <-> DTR
                         }
                 } else {
-                        synchronized(ftDev) {
-                                retDtr = ftDev.clrDtr();
+                        synchronized(ftDevLock) {
+                                retDtr = ftDev.clrRts(); // note RTS <-> DTR
                         }
                 }
                 if(retDtr) {
@@ -348,12 +379,12 @@ public class UartFtdi extends SerialCommunicator {
                 }
 
                 if(rtsOn) {
-                        synchronized(ftDev) {
-                                retRts = ftDev.setRts();
+                        synchronized(ftDevLock) {
+                                retRts = ftDev.setDtr(); // note RTS <-> DTR
                         }
                 } else {
-                        synchronized(ftDev) {
-                                retRts = ftDev.clrRts();
+                        synchronized(ftDevLock) {
+                                retRts = ftDev.clrDtr(); // note RTS <-> DTR
                         }
                 }
                 if(retRts) {
@@ -400,7 +431,7 @@ public class UartFtdi extends SerialCommunicator {
         @Override
         public void clearBuffer() {
                 // clear ftdi chip buffer
-                synchronized(ftDev) {
+                synchronized(ftDevLock) {
                         ftDev.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
                 }
                 mBuffer.clear();
@@ -408,12 +439,18 @@ public class UartFtdi extends SerialCommunicator {
         //////////////////////////////////////////////////////////
         // Listener for reading uart
         //////////////////////////////////////////////////////////
-        private List<ReadLisener> uartReadListenerList = new ArrayList<ReadLisener>();
+        private List<ReadListener> uartReadListenerList = new ArrayList<ReadListener>();
         private boolean mStopReadListener = false;
 
         @Override
-        public void addReadListener(ReadLisener listener) {
+        public void addReadListener(ReadListener listener) {
                 uartReadListenerList.add(listener);
+        }
+
+        @Override
+        @Deprecated
+        public void addReadListener(ReadLisener listener) {
+                addReadListener((ReadListener)listener);
         }
 
         @Override
@@ -435,7 +472,7 @@ public class UartFtdi extends SerialCommunicator {
                 if(mStopReadListener) {
                         return;
                 }
-                for(ReadLisener listener : uartReadListenerList) {
+                for(ReadListener listener : uartReadListenerList) {
                         listener.onRead(size);
                 }
         }
@@ -486,5 +523,15 @@ public class UartFtdi extends SerialCommunicator {
                         str += String.format("%02x ", b[i]);
                 }
                 return str;
+        }
+
+        @Override
+        public String getPhysicalConnectionName() {
+                return Physicaloid.USB_STRING;
+        }
+
+        @Override
+        public int getPhysicalConnectionType() {
+                return Physicaloid.USB;
         }
 }

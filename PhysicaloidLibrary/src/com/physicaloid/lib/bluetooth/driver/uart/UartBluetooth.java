@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.util.Log;
 import com.physicaloid.BuildConfig;
+import com.physicaloid.lib.Physicaloid;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
@@ -405,4 +406,14 @@ public class UartBluetooth extends SerialCommunicator {
                         }
                 } // end of run()
         }; // end of runnable
+
+        @Override
+        public String getPhysicalConnectionName() {
+                return Physicaloid.BLUETOOTH_STRING;
+        }
+
+        @Override
+        public int getPhysicalConnectionType() {
+                return Physicaloid.BLUETOOTH;
+        }
 }
