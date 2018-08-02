@@ -13,6 +13,7 @@ import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.Physicaloid;
 import com.physicaloid.lib.framework.SerialCommunicator;
 import com.physicaloid.lib.usb.driver.uart.ReadLisener;
+import com.physicaloid.lib.usb.driver.uart.ReadListener;
 import com.physicaloid.lib.usb.driver.uart.UartConfig;
 import com.physicaloid.misc.RingBuffer;
 import java.io.DataInputStream;
@@ -328,12 +329,18 @@ public class UartBluetooth extends SerialCommunicator {
         //////////////////////////////////////////////////////////
         // Listener for reading uart
         //////////////////////////////////////////////////////////
-        private List<ReadLisener> uartReadListenerList = new ArrayList<ReadLisener>();
+        private List<ReadListener> uartReadListenerList = new ArrayList<ReadListener>();
         private boolean mStopReadListener = false;
 
         @Override
-        public void addReadListener(ReadLisener listener) {
+        public void addReadListener(ReadListener listener) {
                 uartReadListenerList.add(listener);
+        }
+
+        @Override
+        @Deprecated
+        public void addReadListener(ReadLisener listener) {
+                addReadListener((ReadListener) listener);
         }
 
         @Override
@@ -355,7 +362,7 @@ public class UartBluetooth extends SerialCommunicator {
                 if(mStopReadListener) {
                         return;
                 }
-                for(ReadLisener listener : uartReadListenerList) {
+                for(ReadListener listener : uartReadListenerList) {
                         listener.onRead(size);
                 }
         }
