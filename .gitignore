@@ -1,3 +1,6 @@
+.netbeans.xml
+*~
+
 # Eclipse project files
 #.classpath
 #.project
@@ -31,7 +34,7 @@ release.properties
 pom.xml.*
 
 # Ant
-build.xml
+#build.xml
 ant.properties
 local.properties
 proguard.cfg
