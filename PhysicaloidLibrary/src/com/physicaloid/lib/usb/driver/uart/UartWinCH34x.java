@@ -19,6 +19,7 @@ import com.physicaloid.misc.RingBuffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import android.hardware.usb.UsbConstants;
 
 public class UartWinCH34x extends SerialCommunicator {
         /* supported VID,PID
@@ -31,9 +32,9 @@ public class UartWinCH34x extends SerialCommunicator {
          * parity {NONE, EVEN, ODD}
          * stop bits [1, 2]
          */
-
+        private static final boolean DEBUG_SHOW = true;
         private static final String TAG = UartWinCH34x.class.getSimpleName();
-        private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
+        //private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
         private static final int DEFAULT_BAUDRATE = 9600;
         private UsbCdcConnection mUsbConnetionManager;
         private UartConfig mUartConfig;
@@ -97,6 +98,7 @@ public class UartWinCH34x extends SerialCommunicator {
 
         public boolean open(UsbVidPid ids) {
                 if(mUsbConnetionManager.open(ids)) {
+                        Log.d(TAG, "Opening WCH");
                         mConnection = mUsbConnetionManager.getConnection();
                         mEndpointIn = mUsbConnetionManager.getEndpointIn();
                         mEndpointOut = mUsbConnetionManager.getEndpointOut();
@@ -109,6 +111,7 @@ public class UartWinCH34x extends SerialCommunicator {
                         isOpened = true;
                         return true;
                 }
+                Log.d(TAG, "Opening WCH failed");
                 return false;
         }
 
@@ -229,20 +232,40 @@ public class UartWinCH34x extends SerialCommunicator {
          * @return true : successful, false : fail
          */
         private boolean init() {
+
                 int size = 8;
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init");
+                        }
                 byte[] buffer = new byte[size];
 
                 if(mConnection == null) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init mConnection == null");
+                        }
                         return false;
                 }
 
                 /* expect two bytes 0x27 0x00 */
                 int r = ch341_control_in(0x5f, 0, 0, buffer, size);
-                if(r < 0) {
+                if(r != 2) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init r !=2 for 0x5f");
+                        }
+                        return false;
+                }
+
+                if((buffer[0] != 0x27 && buffer[0] != 0x30)|| buffer[1] != 0x00) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init wasn't 0x27|0x30 0x00 for 0x5f "+ buffer[0] + " "+buffer[1]);
+                        }
                         return false;
                 }
                 r = ch341_control_out(0xa1, 0, 0);
                 if(r < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init fail on 0xa1");
+                        }
                         return false;
                 }
 
@@ -252,23 +275,42 @@ public class UartWinCH34x extends SerialCommunicator {
 
                 /* expect two bytes 0x56 0x00 */
                 r = ch341_control_in(0x95, 0x2518, 0, buffer, size);
-                if(r < 0) {
+                if(r != 2) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init r !=2 for 0x95");
+                        }
                         return false;
+                }
+                // 0xc3 0
+                if((buffer[0] != 0x56 && buffer[0] != (byte)0xc3) || buffer[1] != 0x00) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init wasn't 0x56|0xc3 0x00 for 0x95 "+ buffer[0] + " "+buffer[1]);
+                        }
+                        //return false;
                 }
 
                 r = ch341_control_out(0x9a, 0x2518, 0x0050);
                 if(r < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init r !=2 for 0x9a");
+                        }
                         return false;
                 }
 
-                /* expect 0xff 0xee */
+                /* expect 0xff 0xee, not checked */
                 r = ch341_get_status();
                 if(r < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init status failed");
+                        }
                         return false;
                 }
 
                 r = ch341_control_out(0xa1, 0x501f, 0xd90a);
                 if(r < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init r !=2 for 0xa1");
+                        }
                         return false;
                 }
 
@@ -280,9 +322,12 @@ public class UartWinCH34x extends SerialCommunicator {
                         return false;
                 }
 
-                /* expect 0x9f 0xee */
+                /* expect 0x9f 0xee, not checked */
                 r = ch341_get_status();
                 if(r < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "init final status failed");
+                        }
                         return false;
                 }
 
@@ -387,7 +432,30 @@ public class UartWinCH34x extends SerialCommunicator {
 
         @Override
         public boolean setParity(int parity) {
-                // NOT IMPLEMENTED YET
+                int p;
+                switch(parity) {
+                        case UartConfig.PARITY_NONE:
+                                p = 0xc3;
+                                break;
+                        case UartConfig.PARITY_ODD:
+                                p = 0xcb;
+                                break;
+                        case UartConfig.PARITY_EVEN:
+                                p = 0xdb;
+                                break;
+                        case UartConfig.PARITY_MARK:
+                                p = 0xeb;
+                                break;
+                        case UartConfig.PARITY_SPACE:
+                                p = 0xfb;
+                                break;
+                        default:
+                                return false;
+                }
+                int r = ch341_control_out(CH341_REQ_WRITE_REG, 0x2518, p);
+                if(r < 0) {
+                        return false;
+                }
                 mUartConfig.parity = parity;
                 return true;
         }

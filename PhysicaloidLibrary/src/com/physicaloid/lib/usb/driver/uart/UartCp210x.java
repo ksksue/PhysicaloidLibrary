@@ -299,31 +299,20 @@ public class UartCp210x extends SerialCommunicator {
         public boolean setUartConfig(UartConfig config) {
                 boolean res;
                 boolean ret = true;
-                //if(mUartConfig.baudrate != config.baudrate) {
                         res = setBaudrate(config.baudrate);
                         ret = ret && res;
-                //}
 
-                //if(mUartConfig.dataBits != config.dataBits) {
                         res = setDataBits(config.dataBits);
                         ret = ret && res;
-                //}
 
-                //if(mUartConfig.parity != config.parity) {
                         res = setParity(config.parity);
                         ret = ret && res;
-                //}
 
-                //if(mUartConfig.stopBits != config.stopBits) {
                         res = setStopBits(config.stopBits);
                         ret = ret && res;
-                //}
 
-                //if(mUartConfig.dtrOn != config.dtrOn
-                //        || mUartConfig.rtsOn != config.rtsOn) {
                         res = setDtrRts(config.dtrOn, config.rtsOn);
                         ret = ret && res;
-                //}
 
                 return ret;
         }

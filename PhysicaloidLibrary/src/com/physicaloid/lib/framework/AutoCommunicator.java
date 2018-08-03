@@ -85,12 +85,16 @@ public class AutoCommunicator {
                                 for(UsbVidList usbVid : UsbVidList.values()) {
                                         if(vid == usbVid.getVid()) {
                                                 if(vid == UsbVidList.FTDI.getVid()) {
+                                                        Log.d(TAG, "FTDI");
                                                         sc = new UartFtdi(context);
                                                 } else if(vid == UsbVidList.CP210X.getVid()) {
+                                                        Log.d(TAG, "CP210x");
                                                         sc = new UartCp210x(context);
                                                 } else if((vid == UsbVidList.DCCDUINO.getVid()) || (vid == UsbVidList.WCH.getVid())) {
-                                                        // check PID
+                                                         Log.d(TAG, "POSSIBLY WCH");
+                                                       // check PID
                                                         if(pid == 0x5523 || pid == 0x7523) {
+                                                              Log.d(TAG, "Yes WCH!");
                                                                 sc = new UartWinCH34x(context);
                                                         }
                                                 }
@@ -98,6 +102,7 @@ public class AutoCommunicator {
                                 }
                         }
                         if(sc == null) {
+                                Log.d(TAG, "POSSIBLY CDC-ACM");
                                 sc = new UartCdcAcm(context);
                         }
                         // check if it can actually open....
@@ -106,6 +111,7 @@ public class AutoCommunicator {
                                 sc.close();
                                 return sc;
                         } else {
+                                Log.d(TAG, "Nothing on USB");
                                 sc = null;
                         }
                         if(!USE_WIFI && !USE_BLUETOOTH) {
