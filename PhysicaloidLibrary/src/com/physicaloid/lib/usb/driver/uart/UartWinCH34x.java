@@ -53,15 +53,16 @@ public class UartWinCH34x extends SerialCommunicator {
         private static final int CH341_BIT_DCD = 0x08;
         private static final int CH341_BITS_MODEM_STAT = 0x0f;
 
+        private static final int CH341_REQ_SERIAL_INIT =0xA1;
         private static final int CH341_REQ_READ_VERSION = 0x5F;
+        private static final int CH341_REQ_MODEM_CTRL =0xA4;
         private static final int CH341_REQ_WRITE_REG = 0x9A;
         private static final int CH341_REQ_READ_REG = 0x95;
+
         private static final int CH341_REG_BREAK1 = 0x05;
         private static final int CH341_REG_BREAK2 = 0x18;
         private static final int CH341_NBREAK_BITS_REG1 = 0x01;
         private static final int CH341_NBREAK_BITS_REG2 = 0x40;
-        private static final int CH341_REQ_SERIAL_INIT =0xA1;
-        private static final int CH341_REQ_MODEM_CTRL =0xA4;
 
 
         private static final int CH341_LCR_ENABLE_RX = 0x80;
@@ -79,8 +80,8 @@ public class UartWinCH34x extends SerialCommunicator {
         private static final int CH341_BAUDBASE_FACTOR = 1532620800;
         private static final int CH341_BAUDBASE_DIVMAX = 3;
         private int lcr;
+
         private int line_status;
-        private int multi_status_change;
 
         /*
          * Config request types
@@ -357,7 +358,6 @@ public class UartWinCH34x extends SerialCommunicator {
                 if(r == 2) {
                         r = 0;
                         line_status = (~buffer[0]) & CH341_BITS_MODEM_STAT;
-                        multi_status_change = 0;
                 } else {
                         r = -1;
                 }
