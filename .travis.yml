@@ -30,4 +30,4 @@ script:
 after_success:
   - cp bin/PhysicaloidTest-debug.apk ./result.apk
   - link=$(curl -F "file=@result.apk" https://file.io?expires=1m | jq --raw-output '.link')
-  - echo Uploaded the result to:  $link
+  - echo Uploaded the result to  $link
