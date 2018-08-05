@@ -16,6 +16,9 @@ android:
     #- sys-img-armeabi-v7a-android-18
     #- sys-img-armeabi-v7a-android-26
 
+before_script:
+  - ant -version
+
 script:
   - cd ./SampleProjects/PhysicaloidTest
   - ant -v debug
