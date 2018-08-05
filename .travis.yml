@@ -1,0 +1,21 @@
+language: android
+install: ant deps
+
+android:
+
+  components:
+
+    # The BuildTools version used by the Physicaloid project
+    - build-tools-18.0.1
+
+    # The SDK version used to compile the Physicaloid project
+    - android-18
+
+    # List of the specified system images,
+    # to run emulator(s) during the tests
+    #- sys-img-armeabi-v7a-android-18
+    #- sys-img-armeabi-v7a-android-26
+
+script:
+  - cd ./SampleProjects/PhysicaloidTest
+  - ant -v debug
