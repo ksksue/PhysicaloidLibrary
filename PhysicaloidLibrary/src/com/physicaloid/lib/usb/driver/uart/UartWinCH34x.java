@@ -45,26 +45,21 @@ public class UartWinCH34x extends SerialCommunicator {
         private boolean isOpened;
         private static final int CH341_BIT_RTS = (1 << 6);
         private static final int CH341_BIT_DTR = (1 << 5);
-
         private static final int CH341_MULT_STAT = 0x04;
         private static final int CH341_BIT_CTS = 0x01;
         private static final int CH341_BIT_DSR = 0x02;
         private static final int CH341_BIT_RI = 0x04;
         private static final int CH341_BIT_DCD = 0x08;
         private static final int CH341_BITS_MODEM_STAT = 0x0f;
-
-        private static final int CH341_REQ_SERIAL_INIT =0xA1;
+        private static final int CH341_REQ_SERIAL_INIT = 0xA1;
         private static final int CH341_REQ_READ_VERSION = 0x5F;
-        private static final int CH341_REQ_MODEM_CTRL =0xA4;
+        private static final int CH341_REQ_MODEM_CTRL = 0xA4;
         private static final int CH341_REQ_WRITE_REG = 0x9A;
         private static final int CH341_REQ_READ_REG = 0x95;
-
         private static final int CH341_REG_BREAK1 = 0x05;
         private static final int CH341_REG_BREAK2 = 0x18;
         private static final int CH341_NBREAK_BITS_REG1 = 0x01;
         private static final int CH341_NBREAK_BITS_REG2 = 0x40;
-
-
         private static final int CH341_LCR_ENABLE_RX = 0x80;
         private static final int CH341_LCR_ENABLE_TX = 0x40;
         private static final int CH341_LCR_MARK_SPACE = 0x20;
@@ -76,11 +71,9 @@ public class UartWinCH34x extends SerialCommunicator {
         private static final int CH341_LCR_CS7 = 0x02;
         private static final int CH341_LCR_CS6 = 0x01;
         private static final int CH341_LCR_CS5 = 0x00;
-
         private static final int CH341_BAUDBASE_FACTOR = 1532620800;
         private static final int CH341_BAUDBASE_DIVMAX = 3;
         private int lcr;
-
         private int line_status;
 
         /*
@@ -109,8 +102,10 @@ public class UartWinCH34x extends SerialCommunicator {
         @Override
         public boolean open() {
                 for(UsbVidList id : UsbVidList.values()) {
-                        if(open(new UsbVidPid(id.getVid(), 0))) {
-                                return true;
+                        if((id.getVid() == 0x4348) || (id.getVid() == 0x1a86)) {
+                                if(open(new UsbVidPid(id.getVid(), 0))) {
+                                        return true;
+                                }
                         }
                 }
                 return false;

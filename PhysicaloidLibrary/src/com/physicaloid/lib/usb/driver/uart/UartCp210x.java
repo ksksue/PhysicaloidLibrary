@@ -166,8 +166,10 @@ public class UartCp210x extends SerialCommunicator {
         @Override
         public boolean open() {
                 for(UsbVidList id : UsbVidList.values()) {
-                        if(open(new UsbVidPid(id.getVid(), 0))) {
-                                return true;
+                        if(id.getVid() == 0x10C4) {
+                                if(open(new UsbVidPid(id.getVid(), 0))) {
+                                        return true;
+                                }
                         }
                 }
                 return false;
@@ -257,13 +259,6 @@ public class UartCp210x extends SerialCommunicator {
                         request.initialize(mConnection, mEndpointIn);
                         ByteBuffer buf = ByteBuffer.wrap(rbuf);
                         for(;;) {// this is the main loop for transferring
-
-                                //try {
-                                //    len = mConnection.bulkTransfer(mEndpointIn,
-                                //            rbuf, rbuf.length, 1);
-                                //} catch(Exception e) {
-                                //    Log.e(TAG, e.toString());
-                                //}
                                 len = 0;
                                 if(request.queue(buf, rbuf.length)) {
                                         response = mConnection.requestWait();

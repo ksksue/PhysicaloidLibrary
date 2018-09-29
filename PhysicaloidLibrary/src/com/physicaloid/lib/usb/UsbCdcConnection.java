@@ -31,7 +31,12 @@ public class UsbCdcConnection {
         private static final String TAG = UsbCdcConnection.class.getSimpleName();
         private UsbAccessor mUsbAccess;
         private int mCdcAcmInterfaceNum;
+        private int pid;
         SparseArray<UsbCdcConnectionEp> mUsbConnectionEp;
+
+        public int getPID() {
+                return pid;
+        }
 
         public UsbCdcConnection(Context context) {
                 mUsbAccess = UsbAccessor.INSTANCE;
@@ -83,7 +88,8 @@ public class UsbCdcConnection {
                                 if(DEBUG_SHOW) {
                                         Log.d(TAG, "VID PASS " + usbdev.getVendorId());
                                 }
-                                if(ids.getPid() == 0 || ids.getPid() == usbdev.getProductId()) {
+                                pid = usbdev.getProductId();
+                                if(ids.getPid() == 0 || ids.getPid() == pid) {
                                         if(DEBUG_SHOW) {
                                                 Log.d(TAG, "PID PASS " + usbdev.getProductId());
                                         }

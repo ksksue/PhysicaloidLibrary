@@ -167,21 +167,12 @@ public class UartCdcAcm extends SerialCommunicator {
                         } catch(Exception e) {
                         }
                         int len;
-                        //byte[] rbuf = new byte[USB_READ_BUFFER_SIZE];
                         byte[] rbuf = new byte[mEndpointIn.getMaxPacketSize()];
-                        //android.os.Process.setThreadPriority(-20);
                         UsbRequest response;
                         UsbRequest request = new UsbRequest();
                         request.initialize(mConnection, mEndpointIn);
                         ByteBuffer buf = ByteBuffer.wrap(rbuf);
                         for(;;) {// this is the main loop for transferring
-
-                                //try {
-                                //    len = mConnection.bulkTransfer(mEndpointIn,
-                                //            rbuf, rbuf.length, 1);
-                                //} catch(Exception e) {
-                                //    Log.e(TAG, e.toString());
-                                //}
                                 len = 0;
                                 if(request.queue(buf, rbuf.length)) {
                                         response = mConnection.requestWait();

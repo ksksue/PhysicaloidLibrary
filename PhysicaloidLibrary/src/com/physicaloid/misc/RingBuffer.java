@@ -132,6 +132,77 @@ public class RingBuffer {
                         return addLen;
                 }
         }
+        /**
+         * Adds byte array to ring buffer with starting offset
+         *
+         * @param buf    byte array
+         * @param length added length
+         * @param off    offset to start from
+         *
+         * @return actually added length
+         */
+        public synchronized int add(byte[] buf, int length, int off) {
+                int addLen = length;
+                if(buf == null) {
+                        return 0;
+                }
+                if(mAddIndex > mGetIndex) {
+                        if((mAddIndex + length) >= mRingBufSize) {                          // addした結果1周をまたぐ場合
+                                if((mRingBufSize - mAddIndex) + (mGetIndex - 1) < length) {    // 1周をまたいでなおlength以上になる場合
+                                        addLen = (mRingBufSize - mAddIndex) + (mGetIndex - 1);        // 追い抜かないサイズに修正
+                                }
+                        }
+                } else if(mAddIndex < mGetIndex) { // 1周をまたいでいる場合
+                        if((mGetIndex - 1) - mAddIndex < length) {
+                                addLen = (mGetIndex - 1) - mAddIndex;
+                        }
+                }
+
+                if(buf.length < addLen) {
+                        addLen = buf.length;
+                }
+
+                if((mAddIndex + addLen) >= mRingBufSize) { // storeがバッファ終端をまたぐ場合
+                        int remain = mAddIndex + addLen - mRingBufSize;
+                        int copyLen = addLen - remain;
+                        if(copyLen != 0) {
+                                System.arraycopy(buf, off, mRingBuf, mAddIndex, copyLen);
+                                if(DEBUG_SHOW_ADD) {
+                                        Log.d(TAG, "add(" + length + ") : copy buf[0:" + (copyLen - 1) + "] to mRingBuf[" + mAddIndex + ":" + (mAddIndex + copyLen - 1) + "]");
+                                }
+                        }
+
+                        mAddIndex = 0;
+
+                        if(remain != 0) {
+                                System.arraycopy(buf, copyLen, mRingBuf, mAddIndex, remain);
+                                if(DEBUG_SHOW_ADD) {
+                                        Log.d(TAG, "add(" + length + ") : copy buf[" + (copyLen) + ":" + (addLen - 1) + "] to mRingBuf[0:" + (remain - 1) + "]");
+                                }
+                                mAddIndex = remain;
+                        }
+
+                        if(DEBUG_SHOW_ADD) {
+                                Log.d(TAG, "add(" + length + ") : addOffset = " + mAddIndex + ", getOffset = " + mGetIndex);
+                        }
+
+                        return addLen;
+                } else {
+                        System.arraycopy(buf, 0, mRingBuf, mAddIndex, addLen);
+
+                        if(DEBUG_SHOW_ADD) {
+                                Log.d(TAG, "add(" + length + ") : copy buf[0:" + (addLen - 1) + "] to mRingBuf[" + mAddIndex + ":" + (mAddIndex + addLen - 1) + "]");
+                        }
+
+                        mAddIndex += addLen;
+
+                        if(DEBUG_SHOW_ADD) {
+                                Log.d(TAG, "add(" + length + ") : addOffset = " + mAddIndex + ", getOffset = " + mGetIndex);
+                        }
+
+                        return addLen;
+                }
+        }
 
         /**
          * Gets ring buffer to byte array
