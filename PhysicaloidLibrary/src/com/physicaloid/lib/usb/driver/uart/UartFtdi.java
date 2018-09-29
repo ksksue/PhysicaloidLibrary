@@ -116,6 +116,7 @@ public class UartFtdi extends SerialCommunicator {
 
         public UartFtdi(Context context) {
                 super(context);
+                mUsbConnetionManager = new UsbCdcConnection(context);
                 mReadThreadStop = true;
                 mUartConfig = new UartConfig();
                 mBuffer = new RingBuffer(RING_BUFFER_SIZE);
