@@ -23,6 +23,7 @@ import com.physicaloid.lib.Physicaloid.UploadCallBack;
 import com.physicaloid.lib.fpga.PhysicaloidFpga;
 import com.physicaloid.lib.programmer.avr.UploadErrors;
 import com.physicaloid.lib.usb.driver.uart.ReadListener;
+import com.physicaloid.lib.usb.driver.uart.UartConfig;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +99,9 @@ public class PhysicaloidTestActivity extends Activity {
         }
 
         public void onClickOpen(View v) {
+                UartConfig uartConfig = new UartConfig(115200, UartConfig.DATA_BITS8, UartConfig.STOP_BITS1, UartConfig.PARITY_NONE, true, false);
                 if(mPhysicaloid.open()) {
+                        mPhysicaloid.setConfig(uartConfig);
                         updateViews(true);
                 } else {
                         Toast.makeText(this, "Cannot open", Toast.LENGTH_LONG).show();
@@ -143,6 +146,7 @@ public class PhysicaloidTestActivity extends Activity {
                                         byte[] buf = new byte[size];
                                         mPhysicaloid.read(buf, size);
                                         tvAppend(tvRead, Html.fromHtml("<font color=blue>" + new String(buf) + "</font>"));
+                                        //Log.d(TAG, "*********** " +new String(buf));
                                 }
                         });
                         btReadCallback.setText("ReadCallbackOn");

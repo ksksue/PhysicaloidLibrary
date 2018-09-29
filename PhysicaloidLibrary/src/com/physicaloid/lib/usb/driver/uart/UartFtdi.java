@@ -36,6 +36,8 @@ import com.physicaloid.lib.usb.UsbVidPid;
 import com.physicaloid.misc.RingBuffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class UartFtdi extends SerialCommunicator {
@@ -241,6 +243,7 @@ public class UartFtdi extends SerialCommunicator {
                         int len;
                         //byte[] rbuf = new byte[USB_READ_BUFFER_SIZE];
                         byte[] rbuf = new byte[mEndpointIn.getMaxPacketSize()];
+                        byte[] cbuf = new byte[mEndpointIn.getMaxPacketSize()];
                         //android.os.Process.setThreadPriority(-20);
                         UsbRequest response;
                         UsbRequest request = new UsbRequest();
@@ -251,15 +254,20 @@ public class UartFtdi extends SerialCommunicator {
                                 if(request.queue(buf, rbuf.length)) {
                                         response = mConnection.requestWait();
                                         if(response != null) {
-                                                len = buf.position() - 2; // Subtract status
+                                                len = buf.position();
                                         }
-                                        if(len > 0) {
-                                                if(DEBUG_SHOW) {
-                                                        Log.e(TAG, "read(" + len + "): " + toHexStr(rbuf, len));
-                                                }
+                                        if(len > 2) {
+                                                //if(DEBUG_SHOW) {
+                                                //        Log.e(TAG, "read(" + len + "): " + toHexStr(rbuf, len));
+                                                //}
                                                 // FTDI stuffs status in the first 2 bytes.
-                                                mBuffer.add(rbuf, len, 2);
-                                                onRead(len);
+                                                len -= 2;
+                                                System.arraycopy(rbuf, 2, cbuf, 0, len);
+                                                if(DEBUG_SHOW) {
+                                                        Log.e(TAG, "read(" + len + "): " + toHexStr(cbuf, len));
+                                                }
+                                                mBuffer.add(cbuf, len);
+                                                onRead(mBuffer.getBufferdLength());
                                         } else if(mBuffer.getBufferdLength() > 0) {
                                                 onRead(mBuffer.getBufferdLength());
                                         }
@@ -314,7 +322,7 @@ public class UartFtdi extends SerialCommunicator {
                 if(mConnection == null) {
                         return -1;
                 }
-                int ret = mConnection.controlTransfer(REQTYPE_INTERFACE_TO_HOST, request, value, index, buf, bufsize, 100);
+                int ret = mConnection.controlTransfer(REQTYPE_DEVICE_TO_HOST, request, value, index, buf, bufsize, 100);
                 return ret;
 
         }
@@ -326,8 +334,8 @@ public class UartFtdi extends SerialCommunicator {
                 }
                 int divfrac[] = {0, 3, 2, 0, 1, 1, 2, 3};
                 int divindex[] = {0, 0, 0, 1, 0, 1, 1, 1};
-                int baud_value = 0;
-                int baud_index = 0;
+                int baud_value = 0; // uint16_t
+                int baud_index = 0; // uint16_t
                 int divisor3;
                 divisor3 = 48000000 / 2 / baudrate; // divisor shifted 3 bits to the left
 
@@ -352,8 +360,8 @@ public class UartFtdi extends SerialCommunicator {
                         }
                 } else {
 
-                        baud_value = divisor3 >> 3;
-                        baud_value |= divfrac[divisor3 & 0x7] << 14;
+                        baud_value = (divisor3 >> 3) & 0xffff;
+                        baud_value |= (divfrac[divisor3 & 0x7] << 14) & 0xffff;
                         baud_index = divindex[divisor3 & 0x7];
 
                         /* Deal with special cases for highest baud rates. */
@@ -381,7 +389,7 @@ public class UartFtdi extends SerialCommunicator {
                         return false;
                 }
                 int s = ((mUartConfig.stopBits) << 11) | ((mUartConfig.parity) << 8) | dataBits;
-                int rv = control_out(FTDI_SIO_SET_DATA, s & 0xff, s >> 8);
+                int rv = control_out(FTDI_SIO_SET_DATA, s, 0);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
                                 Log.d(TAG, "setDataBits failed " + rv);
@@ -398,7 +406,7 @@ public class UartFtdi extends SerialCommunicator {
                         return false;
                 }
                 int s = ((mUartConfig.stopBits) << 11) | ((parity) << 8) | mUartConfig.dataBits;
-                int rv = control_out(FTDI_SIO_SET_DATA, s & 0xff, s >> 8);
+                int rv = control_out(FTDI_SIO_SET_DATA, s, 0);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
                                 Log.d(TAG, "setParity failed " + rv);
@@ -415,7 +423,7 @@ public class UartFtdi extends SerialCommunicator {
                         return false;
                 }
                 int s = ((stopBits) << 11) | ((mUartConfig.parity) << 8) | mUartConfig.dataBits;
-                int rv = control_out(FTDI_SIO_SET_DATA, s & 0xff, s >> 8);
+                int rv = control_out(FTDI_SIO_SET_DATA, s, 0);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
                                 Log.d(TAG, "setStopBits failed " + rv);
@@ -437,10 +445,10 @@ public class UartFtdi extends SerialCommunicator {
                 int s = 0;
                 // Note: FTDI has these REVERSED!
                 if(dtrOn) {
-                        s = 1;
+                        s = 0x103;
                 }
                 if(rtsOn) {
-                        s |= 2;
+                        s |= 0x203;
                 }
                 int rv = control_out(FTDI_SIO_MODEM_CTRL, s, 0);
                 if(rv < 0) {

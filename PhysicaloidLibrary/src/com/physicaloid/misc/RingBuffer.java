@@ -175,7 +175,7 @@ public class RingBuffer {
                         mAddIndex = 0;
 
                         if(remain != 0) {
-                                System.arraycopy(buf, copyLen, mRingBuf, mAddIndex, remain);
+                                System.arraycopy(buf, copyLen+off, mRingBuf, mAddIndex, remain);
                                 if(DEBUG_SHOW_ADD) {
                                         Log.d(TAG, "add(" + length + ") : copy buf[" + (copyLen) + ":" + (addLen - 1) + "] to mRingBuf[0:" + (remain - 1) + "]");
                                 }
