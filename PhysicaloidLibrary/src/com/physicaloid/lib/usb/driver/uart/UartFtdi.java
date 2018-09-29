@@ -366,6 +366,9 @@ public class UartFtdi extends SerialCommunicator {
                 }
                 int rv = control_out(FTDI_SIO_SET_BAUD_RATE, baud_value, baud_index);
                 if(rv < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "setBaudrate failed " + rv);
+                        }
                         return false;
                 }
                 mUartConfig.baudrate = baudrate;
@@ -380,6 +383,9 @@ public class UartFtdi extends SerialCommunicator {
                 int s = ((mUartConfig.stopBits) << 11) | ((mUartConfig.parity) << 8) | dataBits;
                 int rv = control_out(FTDI_SIO_SET_DATA, s & 0xff, s >> 8);
                 if(rv < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "setDataBits failed " + rv);
+                        }
                         return false;
                 }
                 mUartConfig.dataBits = dataBits;
@@ -394,6 +400,9 @@ public class UartFtdi extends SerialCommunicator {
                 int s = ((mUartConfig.stopBits) << 11) | ((parity) << 8) | mUartConfig.dataBits;
                 int rv = control_out(FTDI_SIO_SET_DATA, s & 0xff, s >> 8);
                 if(rv < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "setParity failed " + rv);
+                        }
                         return false;
                 }
                 mUartConfig.parity = parity;
@@ -408,6 +417,9 @@ public class UartFtdi extends SerialCommunicator {
                 int s = ((stopBits) << 11) | ((mUartConfig.parity) << 8) | mUartConfig.dataBits;
                 int rv = control_out(FTDI_SIO_SET_DATA, s & 0xff, s >> 8);
                 if(rv < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "setStopBits failed " + rv);
+                        }
                         return false;
                 }
                 mUartConfig.stopBits = stopBits;
@@ -425,13 +437,16 @@ public class UartFtdi extends SerialCommunicator {
                 int s = 0;
                 // Note: FTDI has these REVERSED!
                 if(dtrOn) {
-                        s = 2;
+                        s = 1;
                 }
                 if(rtsOn) {
-                        s |= 1;
+                        s |= 2;
                 }
                 int rv = control_out(FTDI_SIO_MODEM_CTRL, s, 0);
                 if(rv < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "setDtrRts failed " + rv);
+                        }
                         return false;
                 }
                 mUartConfig.dtrOn = dtrOn;
