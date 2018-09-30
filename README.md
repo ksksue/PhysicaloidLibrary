@@ -3,6 +3,20 @@ Physicaloid Library
 
 Android Library for communicating with physical-computing boards (e.g.Arduino, mbed)
 
+Features
+-----------------
+**NEW** No closed source slow and buggy D2XX drivers are required.
+- Android Java library project
+- USB-Serial communication
+- WiFi-Serial communication to ESP8266
+- upload a firmware to an Arduino
+- support on Android 3.1 or higher (need USB Host API feature)
+- **does not require ROOT**
+- supports USB-Serial protocols : CDC-ACM, FTDI, Silicon Labs CP210x and WinChipHead CH34X
+- supports uploading firmware protocols : STK500, STK500V2, Binary blob ESP8266 OTA
+- open-source(Apache License 2.0)
+
+
 ![Android x Arduino](https://lh5.googleusercontent.com/-weC-lA-1rdw/UeaCzIrWR3I/AAAAAAAACno/u-ZapAmzkz8/s640/android_arduino.jpg)
 
 
@@ -12,19 +26,6 @@ Users do not need to download an Arduino sketch from a web site.
 
 You (developer) can include Arduino firmwares in your Android app and upload to Google Play.
 ![Upload to Google Play](https://lh6.googleusercontent.com/-lzDrLOSohUY/UeaC5p7Z0uI/AAAAAAAACoA/hcqRjLUe6JQ/s640/physicaloid_upload.png)
-
-
-Features
------------------
-- Android Java library project
-- USB-Serial communication
-- WiFi-Serial communication to ESP8266
-- upload a firmware to an Arduino
-- support on Android 3.1 or higher (need USB Host API feature)
-- **does not require ROOT**
-- supports USB-Serial protocols : CDC-ACM, FTDI, Silicon Labs CP210x and WinChipHead CH34X
-- supports uploading firmware protocols : STK500, STK500V2
-- open-source(Apache License 2.0)
 
 
 Code example
