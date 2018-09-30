@@ -43,13 +43,13 @@ import java.util.List;
 public class UartFtdi extends SerialCommunicator {
 
         private static final String TAG = UartFtdi.class.getSimpleName();
-        private static final boolean DEBUG_SHOW = true && BuildConfig.DEBUG;
+        private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
         private static final int DEFAULT_BAUDRATE = 9600;
         private UsbCdcConnection mUsbConnetionManager;
         private UartConfig mUartConfig;
         private static final int RING_BUFFER_SIZE = 1024;
         private static final int USB_READ_BUFFER_SIZE = 256;
-        private static final int USB_WRITE_BUFFER_SIZE = 256;
+        private static final int USB_WRITE_BUFFER_SIZE = 2;
         private RingBuffer mBuffer;
         private boolean mReadThreadStop = true;
         private UsbDeviceConnection mConnection;
@@ -115,6 +115,13 @@ public class UartFtdi extends SerialCommunicator {
         private static final int FTDI_SIO_THRE = (0x20); // Transmitter Holding Register Empty
         private static final int FTDI_SIO_TEMT = (0x40); // Transmitter Empty
         private static final int FTDI_SIO_FIFO = (0x80); // Error in RX FIFO
+        private static final int FTDI_SIO_SET_DTR_MASK = 0x1;
+        private static final int FTDI_SIO_SET_DTR_HIGH = ((FTDI_SIO_SET_DTR_MASK << 8) | 1);
+        private static final int FTDI_SIO_SET_DTR_LOW = ((FTDI_SIO_SET_DTR_MASK << 8) | 0);
+        private static final int FTDI_SIO_SET_RTS_MASK = 0x2;
+        private static final int FTDI_SIO_SET_RTS_HIGH = ((FTDI_SIO_SET_RTS_MASK << 8) | 2);
+        private static final int FTDI_SIO_SET_RTS_LOW = ((FTDI_SIO_SET_RTS_MASK << 8) | 0);
+        private static final int FTDI_RS_TEMT = (1 << 6);
 
         public UartFtdi(Context context) {
                 super(context);
@@ -161,8 +168,16 @@ public class UartFtdi extends SerialCommunicator {
                 if(mConnection == null) {
                         return false;
                 }
+                int rv = control_out(FTDI_SIO_RESET, 0, 0);
+                if(rv < 0) {
+                        return false;
+                }
                 // set the latency timer to a very low number to improve performance.
-                int rv = control_out(FTDI_SIO_SET_LATENCY_TIMER, 0, 2);
+                rv = control_out(FTDI_SIO_SET_LATENCY_TIMER, 0, 1);
+                if(rv < 0) {
+                        return false;
+                }
+                rv = control_out(FTDI_SIO_SET_FLOW_CTRL, 0, 0);
                 if(rv < 0) {
                         return false;
                 }
@@ -184,6 +199,23 @@ public class UartFtdi extends SerialCommunicator {
                 return mBuffer.get(buf, size);
         }
 
+        private int control_out(int request, int value, int index) {
+                if(mConnection == null) {
+                        return -1;
+                }
+                int ret = mConnection.controlTransfer(REQTYPE_HOST_TO_INTERFACE, request, value, index, null, 0, 100);
+                return ret;
+        }
+
+        private int control_in(int request, int value, int index, byte buf[], int bufsize) {
+                if(mConnection == null) {
+                        return -1;
+                }
+                int ret = mConnection.controlTransfer(REQTYPE_INTERFACE_TO_HOST, request, value, index, buf, bufsize, 100);
+                return ret;
+
+        }
+
         @Override
         public int write(byte[] buf, int size) {
                 if(buf == null) {
@@ -192,11 +224,31 @@ public class UartFtdi extends SerialCommunicator {
                 int offset = 0;
                 int write_size;
                 int written_size;
+                int len;
 
+                if(DEBUG_SHOW) {
+                        Log.e(TAG, "write(" + size + "): " + toHexStr(buf, size));
+                }
 
+                // FTDI is crap, makes us work hard.
+                // We have to treat the chip as if it is an 8250 on the outbound
+                // otherwise it seems that characters don't always seem to make it.
                 while(offset < size) {
-                        write_size = USB_WRITE_BUFFER_SIZE;
-
+                        // check empty
+                        while(true) {
+                                len = 2;
+                                written_size = control_in(FTDI_SIO_GET_MODEM_STATUS, 0, 0, wbuf, len);
+                                if(written_size < 1) {
+                                        return -1;
+                                }
+                                if(written_size == 1) {
+                                        wbuf[1] = 0;
+                                }
+                                if((wbuf[1] & FTDI_RS_TEMT) == FTDI_RS_TEMT) {
+                                        break;
+                                }
+                        }
+                        write_size = 1;
                         if(offset + write_size > size) {
                                 write_size = size - offset;
                         }
@@ -251,11 +303,15 @@ public class UartFtdi extends SerialCommunicator {
                         ByteBuffer buf = ByteBuffer.wrap(rbuf);
                         for(;;) {// this is the main loop for transferring
                                 len = 0;
-                                if(request.queue(buf, rbuf.length)) {
-                                        response = mConnection.requestWait();
-                                        if(response != null) {
-                                                len = buf.position();
+                                synchronized(DevLock) {
+                                        if(request.queue(buf, rbuf.length)) {
+                                                response = mConnection.requestWait();
+                                                if(response != null) {
+                                                        len = buf.position();
+                                                }
                                         }
+                                }
+                                if(len > 1) {
                                         if(len > 2) {
                                                 //if(DEBUG_SHOW) {
                                                 //        Log.e(TAG, "read(" + len + "): " + toHexStr(rbuf, len));
@@ -310,30 +366,12 @@ public class UartFtdi extends SerialCommunicator {
                 return isOpened;
         }
 
-        private int control_out(int request, int value, int index) {
-                if(mConnection == null) {
-                        return -1;
-                }
-                int ret = mConnection.controlTransfer(REQTYPE_HOST_TO_INTERFACE, request, value, index, null, 0, 100);
-                return ret;
-        }
-
-        private int control_in(int request, int value, int index, byte buf[], int bufsize) {
-                if(mConnection == null) {
-                        return -1;
-                }
-                int ret = mConnection.controlTransfer(REQTYPE_DEVICE_TO_HOST, request, value, index, buf, bufsize, 100);
-                return ret;
-
-        }
-
         @Override
         public boolean setBaudrate(int baudrate) {
                 if(mUsbConnetionManager == null) {
                         return false;
                 }
-                int divfrac[] = {0, 3, 2, 0, 1, 1, 2, 3};
-                int divindex[] = {0, 0, 0, 1, 0, 1, 1, 1};
+                int divfrac[] = {0, 3, 2, 4, 1, 5, 6, 7};
                 int baud_value = 0; // uint16_t
                 int baud_index = 0; // uint16_t
                 int divisor3;
@@ -360,9 +398,9 @@ public class UartFtdi extends SerialCommunicator {
                         }
                 } else {
 
-                        baud_value = (divisor3 >> 3) & 0xffff;
-                        baud_value |= (divfrac[divisor3 & 0x7] << 14) & 0xffff;
-                        baud_index = divindex[divisor3 & 0x7];
+                        baud_value = divisor3 >> 3;
+                        baud_value |= divfrac[divisor3 & 0x7] << 14;
+                        //baud_index = divindex[divisor3 & 0x7];
 
                         /* Deal with special cases for highest baud rates. */
                         if(baud_value == 1) {
@@ -372,6 +410,9 @@ public class UartFtdi extends SerialCommunicator {
                                 baud_value = 1; // 1.5
                         }
                 }
+                baud_index = (baud_value >> 16) & 0xFFFF;
+                baud_value &= 0xFFFF;
+
                 int rv = control_out(FTDI_SIO_SET_BAUD_RATE, baud_value, baud_index);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
@@ -442,18 +483,26 @@ public class UartFtdi extends SerialCommunicator {
                 if(DEBUG_SHOW) {
                         Log.d(TAG, "setDtrRts " + Boolean.toString(dtrOn) + ", " + Boolean.toString(rtsOn));
                 }
-                int s = 0;
-                // Note: FTDI has these REVERSED!
+                int s = FTDI_SIO_SET_DTR_LOW;
+
                 if(dtrOn) {
-                        s = 0x103;
-                }
-                if(rtsOn) {
-                        s |= 0x203;
+                        s = FTDI_SIO_SET_DTR_HIGH;
                 }
                 int rv = control_out(FTDI_SIO_MODEM_CTRL, s, 0);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
-                                Log.d(TAG, "setDtrRts failed " + rv);
+                                Log.d(TAG, "setDtr failed " + rv);
+                        }
+                        return false;
+                }
+                s = FTDI_SIO_SET_RTS_LOW;
+                if(rtsOn) {
+                        s = FTDI_SIO_SET_RTS_HIGH;
+                }
+                rv = control_out(FTDI_SIO_MODEM_CTRL, s, 0);
+                if(rv < 0) {
+                        if(DEBUG_SHOW) {
+                                Log.d(TAG, "setRts failed " + rv);
                         }
                         return false;
                 }
