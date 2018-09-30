@@ -5,7 +5,7 @@ Android Library for communicating with physical-computing boards (e.g.Arduino, m
 
 Features
 -----------------
-**NEW** No closed source slow and buggy D2XX drivers are required.
+- **NEW! No closed source slow and buggy D2XX drivers are required.**
 - Android Java library project
 - USB-Serial communication
 - WiFi-Serial communication to ESP8266
@@ -42,9 +42,9 @@ mPhysicaloid.upload(Boards.ARDUINO_UNO, "/sdcard/arduino/Blink.hex");
 ```java
 Physicaloid mPhysicaloid = new Physicaloid(this);
 if(mPhysicaloid.open()) {
-    byte[] buf = "moemoe".getBytes();
-    mPhysicaloid.write(buf, buf.length);
-    mPhysicaloid.close()
+        byte[] buf = "moemoe".getBytes();
+        mPhysicaloid.write(buf, buf.length);
+        mPhysicaloid.close()
 }
 ```
 
@@ -55,13 +55,13 @@ Physicaloid mPhysicaloid = new Physicaloid(this);
 TextView TextView1 = (TextView) findViewById(R.id.TextView1);// Android TextView
 
 if(mPhysicaloid.open()) {
-    byte[] buf = new byte[256];
+        byte[] buf = new byte[256];
 
-    mPhysicaloid.read(buf, buf.length);
-    String str = new String(buf);
-    TextView1.append(str);
+        mPhysicaloid.read(buf, buf.length);
+        String str = new String(buf);
+        TextView1.append(str);
 
-    mPhysicaloid.close();
+        mPhysicaloid.close();
 }
 ```
 
