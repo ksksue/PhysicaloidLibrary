@@ -254,15 +254,15 @@ public class UartFtdi extends SerialCommunicator {
                         }
                         // optimization!
                         if(offset == 0) {
-                                synchronized(DevLock) {
+                                //synchronized(DevLock) {
                                         written_size = mConnection.bulkTransfer(mEndpointOut, buf, write_size, 100);
 
-                                }
+                                //}
                         } else {
                                 System.arraycopy(buf, offset, wbuf, 0, write_size);
-                                synchronized(DevLock) {
+                                //synchronized(DevLock) {
                                         written_size = mConnection.bulkTransfer(mEndpointOut, wbuf, write_size, 100);
-                                }
+                                //}
                         }
                         if(written_size < 0) {
                                 return -1;
@@ -303,14 +303,14 @@ public class UartFtdi extends SerialCommunicator {
                         ByteBuffer buf = ByteBuffer.wrap(rbuf);
                         for(;;) {// this is the main loop for transferring
                                 len = 0;
-                                synchronized(DevLock) {
+                                //synchronized(DevLock) {
                                         if(request.queue(buf, rbuf.length)) {
                                                 response = mConnection.requestWait();
                                                 if(response != null) {
                                                         len = buf.position();
                                                 }
                                         }
-                                }
+                                //}
                                 if(len > 1) {
                                         if(len > 2) {
                                                 //if(DEBUG_SHOW) {

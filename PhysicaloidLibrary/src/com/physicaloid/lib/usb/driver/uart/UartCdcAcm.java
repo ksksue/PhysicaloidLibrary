@@ -34,7 +34,7 @@ import java.util.List;
 public class UartCdcAcm extends SerialCommunicator {
 
         private static final String TAG = UartCdcAcm.class.getSimpleName();
-        private static final boolean DEBUG_SHOW = true && BuildConfig.DEBUG;
+        private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
         private static final int DEFAULT_BAUDRATE = 9600;
         private UsbCdcConnection mUsbConnetionManager;
         private UartConfig mUartConfig;
