@@ -653,4 +653,9 @@ public class Physicaloid {
                 }
                 return mSerial.getPhysicalConnectionType();
         }
+        public void setDebug(boolean flag) {
+                if(mSerial != null) {
+                        mSerial.setDebug(flag);
+                }
+        }
 }

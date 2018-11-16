@@ -190,4 +190,9 @@ public abstract class SerialCommunicator {
      */
     abstract public int getPhysicalConnectionType();
 
+    /**
+     *
+     * @param flag true to turn on debugging.
+     */
+    abstract public void setDebug(boolean flag);
 }

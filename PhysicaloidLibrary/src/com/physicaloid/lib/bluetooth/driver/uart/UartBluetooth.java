@@ -31,7 +31,7 @@ import java.util.UUID;
 public class UartBluetooth extends SerialCommunicator {
 
         private static final String TAG = UartBluetooth.class.getSimpleName();
-        private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
+        private boolean DEBUG_SHOW = false;
         private static final int DEFAULT_BAUDRATE = 9600;
         private UartConfig mUartConfig;
         private static final int RING_BUFFER_SIZE = 1024;
@@ -422,5 +422,10 @@ public class UartBluetooth extends SerialCommunicator {
         @Override
         public int getPhysicalConnectionType() {
                 return Physicaloid.BLUETOOTH;
+        }
+
+        @Override
+        public void setDebug(boolean flag) {
+                DEBUG_SHOW = flag;
         }
 }

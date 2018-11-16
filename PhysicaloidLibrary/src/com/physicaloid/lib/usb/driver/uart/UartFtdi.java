@@ -36,29 +36,25 @@ import com.physicaloid.lib.usb.UsbVidPid;
 import com.physicaloid.misc.RingBuffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class UartFtdi extends SerialCommunicator {
 
         private static final String TAG = UartFtdi.class.getSimpleName();
-        private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
+        private boolean DEBUG_SHOW = false;
         private static final int DEFAULT_BAUDRATE = 9600;
         private UsbCdcConnection mUsbConnetionManager;
         private UartConfig mUartConfig;
         private static final int RING_BUFFER_SIZE = 1024;
-        private static final int USB_READ_BUFFER_SIZE = 256;
         private static final int USB_WRITE_BUFFER_SIZE = 2;
         private RingBuffer mBuffer;
         private boolean mReadThreadStop = true;
         private UsbDeviceConnection mConnection;
         private UsbEndpoint mEndpointIn;
         private UsbEndpoint mEndpointOut;
-        private int mInterfaceNum;
         private boolean isOpened;
         private byte[] wbuf = new byte[USB_WRITE_BUFFER_SIZE];
-        private final Object DevLock = new Object();
+        //private final Object DevLock = new Object();
         // USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT
         private static final byte REQTYPE_HOST_TO_INTERFACE = (byte) 0x41;
         // USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN
@@ -90,37 +86,57 @@ public class UartFtdi extends SerialCommunicator {
         private static final int FTDI_SIO_SET_BAUD_RATE = (0x03); // Set baud rate
         private static final int FTDI_SIO_SET_DATA = (0x04); // Set the data characteristics of the port
         private static final int FTDI_SIO_GET_MODEM_STATUS = (0x05); // Get the current value of modem status register
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_SET_EVENT_CHAR = (0x06); // Set the event character
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_SET_ERROR_CHAR = (0x07); // Set the error character
         private static final int FTDI_SIO_SET_LATENCY_TIMER = (0x09); // Set the latency timer
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_GET_LATENCY_TIMER = (0x0A); // Get the latency timer
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_RESET_SIO = (0x00);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_RESET_PURGE_RX = (0x01);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_RESET_PURGE_TX = (0x02);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_DISABLE_FLOW_CTRL = (0x00);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_RTS_CTS_HS = (0x01);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_DTR_DSR_HS = (0x02);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_XON_XOFF_HS = (0x04);
         // status 0
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_CTS_MASK = (0x10);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_DSR_MASK = (0x20);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_RI_MASK = (0x40);
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_RLSD_MASK = (0x80);
         // status 1
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_DR = (0x01); // Data Ready
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_OE = (0x02); // Overrun Error
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_PE = (0x04); // Parity Error
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_FE = (0x08); // Framing Error
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_BI = (0x10); // Break Interrupt
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_THRE = (0x20); // Transmitter Holding Register Empty
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_TEMT = (0x40); // Transmitter Empty
+        @SuppressWarnings("unused")
         private static final int FTDI_SIO_FIFO = (0x80); // Error in RX FIFO
-        private static final int FTDI_SIO_SET_DTR_MASK = 0x1;
-        private static final int FTDI_SIO_SET_DTR_HIGH = ((FTDI_SIO_SET_DTR_MASK << 8) | 1);
-        private static final int FTDI_SIO_SET_DTR_LOW = ((FTDI_SIO_SET_DTR_MASK << 8) | 0);
-        private static final int FTDI_SIO_SET_RTS_MASK = 0x2;
-        private static final int FTDI_SIO_SET_RTS_HIGH = ((FTDI_SIO_SET_RTS_MASK << 8) | 2);
-        private static final int FTDI_SIO_SET_RTS_LOW = ((FTDI_SIO_SET_RTS_MASK << 8) | 0);
+        private static final int FTDI_SIO_SET_RTS_HIGH = 0x0101; //((FTDI_SIO_SET_DTR_MASK << 8) | 1);
+        private static final int FTDI_SIO_SET_RTS_LOW = 0x0100; //((FTDI_SIO_SET_DTR_MASK << 8) | 0);
+        private static final int FTDI_SIO_SET_DTR_HIGH = 0x0202; //((FTDI_SIO_SET_RTS_MASK << 8) | 2);
+        private static final int FTDI_SIO_SET_DTR_LOW = 0x0200; //((FTDI_SIO_SET_RTS_MASK << 8) | 0);
         private static final int FTDI_RS_TEMT = (1 << 6);
 
         public UartFtdi(Context context) {
@@ -165,19 +181,21 @@ public class UartFtdi extends SerialCommunicator {
         }
 
         private boolean init() {
+
                 if(mConnection == null) {
                         return false;
                 }
-                int rv = control_out(FTDI_SIO_RESET, 0, 0);
+                int rv;
+                rv = control_out(FTDI_SIO_RESET, 0, 0);
+                if(rv < 0) {
+                        return false;
+                }
+                rv = control_out(FTDI_SIO_SET_FLOW_CTRL, 0, 1);
                 if(rv < 0) {
                         return false;
                 }
                 // set the latency timer to a very low number to improve performance.
                 rv = control_out(FTDI_SIO_SET_LATENCY_TIMER, 0, 1);
-                if(rv < 0) {
-                        return false;
-                }
-                rv = control_out(FTDI_SIO_SET_FLOW_CTRL, 0, 0);
                 if(rv < 0) {
                         return false;
                 }
@@ -202,6 +220,9 @@ public class UartFtdi extends SerialCommunicator {
         private int control_out(int request, int value, int index) {
                 if(mConnection == null) {
                         return -1;
+                }
+                if(DEBUG_SHOW) {
+                        Log.d(TAG, "XXXXXXXXXXXXXXXXXXXXXXXXX CTRL r=" + String.format("0x%02X", request) + " v=" + String.format("0x%04X", value) + " i=" + String.format("0x%04X", index));
                 }
                 int ret = mConnection.controlTransfer(REQTYPE_HOST_TO_INTERFACE, request, value, index, null, 0, 100);
                 return ret;
@@ -255,13 +276,13 @@ public class UartFtdi extends SerialCommunicator {
                         // optimization!
                         if(offset == 0) {
                                 //synchronized(DevLock) {
-                                        written_size = mConnection.bulkTransfer(mEndpointOut, buf, write_size, 100);
+                                written_size = mConnection.bulkTransfer(mEndpointOut, buf, write_size, 100);
 
                                 //}
                         } else {
                                 System.arraycopy(buf, offset, wbuf, 0, write_size);
                                 //synchronized(DevLock) {
-                                        written_size = mConnection.bulkTransfer(mEndpointOut, wbuf, write_size, 100);
+                                written_size = mConnection.bulkTransfer(mEndpointOut, wbuf, write_size, 100);
                                 //}
                         }
                         if(written_size < 0) {
@@ -304,12 +325,12 @@ public class UartFtdi extends SerialCommunicator {
                         for(;;) {// this is the main loop for transferring
                                 len = 0;
                                 //synchronized(DevLock) {
-                                        if(request.queue(buf, rbuf.length)) {
-                                                response = mConnection.requestWait();
-                                                if(response != null) {
-                                                        len = buf.position();
-                                                }
+                                if(request.queue(buf, rbuf.length)) {
+                                        response = mConnection.requestWait();
+                                        if(response != null) {
+                                                len = buf.position();
                                         }
+                                }
                                 //}
                                 if(len > 1) {
                                         if(len > 2) {
@@ -430,7 +451,7 @@ public class UartFtdi extends SerialCommunicator {
                         return false;
                 }
                 int s = ((mUartConfig.stopBits) << 11) | ((mUartConfig.parity) << 8) | dataBits;
-                int rv = control_out(FTDI_SIO_SET_DATA, s, 0);
+                int rv = control_out(FTDI_SIO_SET_DATA, s, 1);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
                                 Log.d(TAG, "setDataBits failed " + rv);
@@ -447,7 +468,7 @@ public class UartFtdi extends SerialCommunicator {
                         return false;
                 }
                 int s = ((mUartConfig.stopBits) << 11) | ((parity) << 8) | mUartConfig.dataBits;
-                int rv = control_out(FTDI_SIO_SET_DATA, s, 0);
+                int rv = control_out(FTDI_SIO_SET_DATA, s, 1);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
                                 Log.d(TAG, "setParity failed " + rv);
@@ -464,7 +485,7 @@ public class UartFtdi extends SerialCommunicator {
                         return false;
                 }
                 int s = ((stopBits) << 11) | ((mUartConfig.parity) << 8) | mUartConfig.dataBits;
-                int rv = control_out(FTDI_SIO_SET_DATA, s, 0);
+                int rv = control_out(FTDI_SIO_SET_DATA, s, 1);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
                                 Log.d(TAG, "setStopBits failed " + rv);
@@ -483,23 +504,22 @@ public class UartFtdi extends SerialCommunicator {
                 if(DEBUG_SHOW) {
                         Log.d(TAG, "setDtrRts " + Boolean.toString(dtrOn) + ", " + Boolean.toString(rtsOn));
                 }
-                int s = FTDI_SIO_SET_DTR_LOW;
-
-                if(dtrOn) {
-                        s = FTDI_SIO_SET_DTR_HIGH;
+                int s = FTDI_SIO_SET_DTR_HIGH;
+                if(!dtrOn) {
+                        s = FTDI_SIO_SET_DTR_LOW;
                 }
-                int rv = control_out(FTDI_SIO_MODEM_CTRL, s, 0);
+                int rv = control_out(FTDI_SIO_MODEM_CTRL, s, 1);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
                                 Log.d(TAG, "setDtr failed " + rv);
                         }
                         return false;
                 }
-                s = FTDI_SIO_SET_RTS_LOW;
-                if(rtsOn) {
-                        s = FTDI_SIO_SET_RTS_HIGH;
+                s = FTDI_SIO_SET_RTS_HIGH;
+                if(!rtsOn) {
+                        s = FTDI_SIO_SET_RTS_LOW;
                 }
-                rv = control_out(FTDI_SIO_MODEM_CTRL, s, 0);
+                rv = control_out(FTDI_SIO_MODEM_CTRL, s, 1);
                 if(rv < 0) {
                         if(DEBUG_SHOW) {
                                 Log.d(TAG, "setRts failed " + rv);
@@ -613,5 +633,10 @@ public class UartFtdi extends SerialCommunicator {
         @Override
         public int getPhysicalConnectionType() {
                 return Physicaloid.USB;
+        }
+
+        @Override
+        public void setDebug(boolean flag) {
+                DEBUG_SHOW = flag;
         }
 }

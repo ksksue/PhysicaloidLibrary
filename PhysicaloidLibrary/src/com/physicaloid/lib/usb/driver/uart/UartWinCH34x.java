@@ -28,9 +28,8 @@ public class UartWinCH34x extends SerialCommunicator {
          * 0x1a86, 0x5523
          */
 
-        private static final boolean DEBUG_SHOW = true;
         private static final String TAG = UartWinCH34x.class.getSimpleName();
-        //private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
+        private boolean DEBUG_SHOW = false;
         private static final int DEFAULT_BAUDRATE = 9600;
         private UsbCdcConnection mUsbConnetionManager;
         private UartConfig mUartConfig;
@@ -602,5 +601,10 @@ public class UartWinCH34x extends SerialCommunicator {
         @Override
         public int getPhysicalConnectionType() {
                 return Physicaloid.USB;
+        }
+
+        @Override
+        public void setDebug(boolean flag) {
+                DEBUG_SHOW = flag;
         }
 }

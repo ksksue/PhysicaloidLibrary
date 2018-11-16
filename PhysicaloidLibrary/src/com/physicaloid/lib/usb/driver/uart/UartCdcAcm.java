@@ -34,7 +34,7 @@ import java.util.List;
 public class UartCdcAcm extends SerialCommunicator {
 
         private static final String TAG = UartCdcAcm.class.getSimpleName();
-        private static final boolean DEBUG_SHOW = false && BuildConfig.DEBUG;
+        private boolean DEBUG_SHOW = false;
         private static final int DEFAULT_BAUDRATE = 9600;
         private UsbCdcConnection mUsbConnetionManager;
         private UartConfig mUartConfig;
@@ -435,5 +435,10 @@ public class UartCdcAcm extends SerialCommunicator {
         @Override
         public int getPhysicalConnectionType() {
                 return Physicaloid.USB;
+        }
+
+        @Override
+        public void setDebug(boolean flag) {
+                DEBUG_SHOW = flag;
         }
 }
