@@ -1,7 +1,6 @@
 package com.physicaloid.lib.fpga;
 
 import android.util.Log;
-
 import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.framework.SerialCommunicator;
 
@@ -18,12 +17,10 @@ public class PhysicaloidFpgaPacketFilter {
         if(comm == null) return 0;
         if(buf == null) return 0;
 
-        int totalWrittenSize=0;
-
         byte[] packet = createEscapedPacket(buf, offset, size);
         if(DEBUG_SHOW) { Log.d(TAG, "write("+packet.length+") : "+toHexStr(packet, packet.length)); }
 
-        totalWrittenSize = comm.write(packet, packet.length);
+        int totalWrittenSize = comm.write(packet, packet.length);
 
         while(totalWrittenSize<packet.length) {
             int remainingSize = packet.length - totalWrittenSize;
@@ -37,12 +34,11 @@ public class PhysicaloidFpgaPacketFilter {
 
     public byte[] createEscapedPacket(byte[] buf, int offset, int size) {
         if(buf == null) return null;
-        int bufPointer=0;
         int escapedBufPointer=0;
         byte[] escapedPacket = new byte[buf.length*2];
 
         for(int i=0; i<size; i++) {
-            bufPointer = i+offset;
+            int bufPointer = i+offset;
             escapedPacket[escapedBufPointer] = buf[bufPointer];
             escapedBufPointer++;
             if((buf[bufPointer] == PhysicaloidFpgaConst.COMMAND_BYTE) || buf[bufPointer] == PhysicaloidFpgaConst.ESCAPE_BYTE) {

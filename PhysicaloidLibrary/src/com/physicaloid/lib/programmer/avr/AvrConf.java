@@ -29,413 +29,6 @@ package com.physicaloid.lib.programmer.avr;
 
 import com.physicaloid.lib.Boards;
 
-class AVRConfMemEEPROM {
-    String desc;
-    boolean paged;
-    int page_size;
-    int size;
-    int min_write_delay;
-    int max_write_delay;
-    int readback_p1;
-    int readback_p2;
-    String[] read;
-    String[] write;
-    String[] loadpage_lo;
-    String[] writepage;
-    int mode;
-    int delay;
-    int blocksize;
-    int readsize;
-
-    public AVRConfMemEEPROM(
-            boolean memoryPaged,
-            int memoryPage_size,
-            int memorySize,
-            int memoryMin_write_delay,
-            int memoryMax_write_delay,
-            int memoryReadback_p1,
-            int memoryReadback_p2,
-            String[] memoryRead,
-            String[] memoryWrite,
-            String[] memoryLoadpage_lo,
-            String[] memoryWritepage,
-            int memoryMode,
-            int memoryDelay,
-            int memoryBlocksize,
-            int memoryReadsize
-            ) {
-        desc            = "eeprom";
-        paged           = memoryPaged;
-        page_size       = memoryPage_size;
-        size            = memorySize;
-        min_write_delay = memoryMin_write_delay;
-        max_write_delay = memoryMax_write_delay;
-        readback_p1     = memoryReadback_p1;
-        readback_p2     = memoryReadback_p2;
-        read            = memoryRead;
-        write           = memoryWrite;
-        loadpage_lo     = memoryLoadpage_lo;
-        writepage       = memoryWritepage;
-        mode            = memoryMode;
-        delay           = memoryDelay;
-        blocksize       = memoryBlocksize;
-        readsize        = memoryReadsize;
-    }
-}
-
-/*
-memory "eeprom"
-paged           = no;
-page_size       = 4;
-size            = 1024;
-min_write_delay = 3600;
-max_write_delay = 3600;
-readback_p1     = 0xff;
-readback_p2     = 0xff;
-read = " 1 0 1 0 0 0 0 0",
-       " 0 0 0 x x x a9 a8",
-       " a7 a6 a5 a4 a3 a2 a1 a0",
-       " o o o o o o o o";
-
-write = " 1 1 0 0 0 0 0 0",
-        " 0 0 0 x x x a9 a8",
-        " a7 a6 a5 a4 a3 a2 a1 a0",
-        " i i i i i i i i";
-
-loadpage_lo = " 1 1 0 0 0 0 0 1",
-              " 0 0 0 0 0 0 0 0",
-              " 0 0 0 0 0 0 a1 a0",
-              " i i i i i i i i";
-
-writepage = " 1 1 0 0 0 0 1 0",
-            " 0 0 x x x x a9 a8",
-            " a7 a6 a5 a4 a3 a2 0 0",
-            " x x x x x x x x";
-
-mode            = 0x41;
-delay           = 20;
-blocksize       = 4;
-readsize        = 256;
-;
-*/
-
-class AVRConfMemFlash {
-
-    String desc;
-    boolean paged;
-    int size;
-    int page_size;
-    int num_pages;
-    int min_write_delay;
-    int max_write_delay;
-    int readback_p1;
-    int readback_p2;
-    String[] read_lo;
-    String[] read_hi;
-    String[] loadpage_lo;
-    String[] loadpage_hi;
-    String[] load_ext_addr;
-    String[] writepage;
-
-    int mode;
-    int delay;
-    int blocksize;
-    int readsize;
-
-    public AVRConfMemFlash(
-            boolean memoryPaged,
-            int memorySize,
-            int memoryPage_size,
-            int memoryNum_pages,
-            int memoryMin_write_delay,
-            int memoryMax_write_delay,
-            int memoryReadback_p1,
-            int memoryReadback_p2,
-            String[] memoryRead_lo,
-            String[] memoryRead_hi,
-            String[] memoryLoadpage_lo,
-            String[] memoryLoadpage_hi,
-            String[] memoryWritepage,
-            String[] memoryLoad_ext_addr,
-
-            int memoryMode,
-            int memoryDelay,
-            int memoryBlocksize,
-            int memoryReadsize) {
-
-        desc            = "flash";
-        paged           = memoryPaged;
-        size            = memorySize;
-        page_size       = memoryPage_size;
-        num_pages       = memoryNum_pages;
-        min_write_delay = memoryMin_write_delay;
-        max_write_delay = memoryMax_write_delay;
-        readback_p1     = memoryReadback_p1;
-        readback_p2     = memoryReadback_p2;
-        read_lo         = memoryRead_lo;
-        read_hi         = memoryRead_hi;
-        loadpage_lo     = memoryLoadpage_lo;
-        loadpage_hi     = memoryLoadpage_hi;
-        writepage       = memoryWritepage;
-
-        mode            = memoryMode;
-        delay           = memoryDelay;
-        blocksize       = memoryBlocksize;
-        readsize        = memoryReadsize;
-    }
-}
-/*
-memory "flash"
-paged           = yes;
-size            = 32768;
-page_size       = 128;
-num_pages       = 256;
-min_write_delay = 4500;
-max_write_delay = 4500;
-readback_p1     = 0xff;
-readback_p2     = 0xff;
-read_lo = " 0 0 1 0 0 0 0 0",
-          " 0 0 a13 a12 a11 a10 a9 a8",
-          " a7 a6 a5 a4 a3 a2 a1 a0",
-          " o o o o o o o o";
-
-read_hi = " 0 0 1 0 1 0 0 0",
-          " 0 0 a13 a12 a11 a10 a9 a8",
-          " a7 a6 a5 a4 a3 a2 a1 a0",
-          " o o o o o o o o";
-
-loadpage_lo = " 0 1 0 0 0 0 0 0",
-              " 0 0 0 x x x x x",
-              " x x a5 a4 a3 a2 a1 a0",
-              " i i i i i i i i";
-
-loadpage_hi = " 0 1 0 0 1 0 0 0",
-              " 0 0 0 x x x x x",
-              " x x a5 a4 a3 a2 a1 a0",
-              " i i i i i i i i";
-
-writepage = " 0 1 0 0 1 1 0 0",
-            " 0 0 a13 a12 a11 a10 a9 a8",
-            " a7 a6 x x x x x x",
-            " x x x x x x x x";
-
-mode            = 0x41;
-delay           = 6;
-blocksize       = 128;
-readsize        = 256;
-
-;
-*/
-
-class AVRConfMemFuse {
-    String name;
-    int size;
-    int min_write_delay;
-    int max_write_delay;
-    String[] read;
-    String[] write;
-
-    public AVRConfMemFuse(
-            String memoryName,
-            int memorySize,
-            int memoryMinWriteDelay,
-            int memoryMaxWriteDelay,
-            String[] memoryRead,
-            String[] memoryWrite) {
-        name            = memoryName;
-        size            = memorySize;
-        min_write_delay = memoryMinWriteDelay;
-        max_write_delay = memoryMaxWriteDelay;
-        read            = memoryRead;
-        write           = memoryWrite;
-    }
-}
-/*
-memory "lfuse"
-    size = 1;
-    min_write_delay = 4500;
-    max_write_delay = 4500;
-    read = "0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0",
-           "x x x x x x x x o o o o o o o o";
-
-    write = "1 0 1 0 1 1 0 0 1 0 1 0 0 0 0 0",
-            "x x x x x x x x i i i i i i i i";
-;
-*/
-
-class AVRMem {
-    public static final int AVR_OP_READ             = 0;
-    public static final int AVR_OP_WRITE            = 1;
-    public static final int AVR_OP_READ_LO          = 2;
-    public static final int AVR_OP_READ_HI          = 3;
-    public static final int AVR_OP_WRITE_LO         = 4;
-    public static final int AVR_OP_WRITE_HI         = 5;
-    public static final int AVR_OP_LOADPAGE_LO      = 6;
-    public static final int AVR_OP_LOADPAGE_HI      = 7;
-    public static final int AVR_OP_LOAD_EXT_ADDR    = 8;
-    public static final int AVR_OP_WRITEPAGE        = 9;
-    public static final int AVR_OP_CHIP_ERASE       = 10;
-    public static final int AVR_OP_PGM_ENABLE       = 11;
-    public static final int AVR_OP_MAX              = 12;
-
-    public static final int AVR_CMDBIT_IGNORE   = 0;    /* bit is ignored on input and output */
-    public static final int AVR_CMDBIT_VALUE    = 1;    /* bit is set to 0 or 1 for input or output */
-    public static final int AVR_CMDBIT_ADDRESS  = 2;    /* this bit represents an input address bit */
-    public static final int AVR_CMDBIT_INPUT    = 3;    /* this bit is an input bit */
-    public static final int AVR_CMDBIT_OUTPUT   = 4;    /* this bit is an output bit */
-
-    String desc;                // memory description ("flash", "eeprom", etc)
-    boolean paged;                  // page addressed (e.g. ATmega flash)
-    int size;                   // total memory size in bytes
-    int page_size;              // size of memory page (if page addressed)
-    int num_pages;              // number of pages (if page addressed)
-    long offset;                // offset in IO memory (ATxmega)
-    int min_write_delay;        // microseconds
-    int max_write_delay;        // microseconds
-    int pwroff_after_write;     // after this memory type is written to,
-                                // the device must be powered off and
-                                // back on, see errata
-                                // http://www.atmel.com/atmel/acrobat/doc1280.pdf
-    byte[] readback;            // polled read-back values
-
-    int mode;                   // stk500 v2 xml file parameter
-    int delay;                  // stk500 v2 xml file parameter
-    int blocksize;              // stk500 v2 xml file parameter
-    int readsize;               // stk500 v2 xml file parameter
-    int pollindex;              // stk500 v2 xml file parameter
-
-    byte[]      buf;            // pointer to memory buffer
-    OPCODE[]    op;             // opcodes
-
-    AVRMem(AvrConf avrConf){
-        // Only memory type is "flash"
-        desc                = avrConf.flash.desc;
-        paged               = avrConf.flash.paged;
-        size                = avrConf.flash.size;
-        page_size           = avrConf.flash.page_size;
-        num_pages           = avrConf.flash.num_pages;
-        offset              = 0;
-        min_write_delay     = avrConf.flash.min_write_delay;
-        max_write_delay     = avrConf.flash.max_write_delay;
-        pwroff_after_write  = 0;
-        readback            = new byte[2];
-        readback[0]         = (byte)avrConf.flash.readback_p1;
-        readback[1]         = (byte)avrConf.flash.readback_p2;
-        mode                = avrConf.flash.mode;
-        delay               = avrConf.flash.delay;
-        blocksize           = avrConf.flash.blocksize;
-        readsize            = avrConf.flash.readsize;
-        pollindex           = 0;
-        buf                 = null;
-        op                  = new OPCODE[AVR_OP_MAX];
-        for(int i=0; i<AVR_OP_MAX; i++) {
-            op[i] = new OPCODE();
-        }
-        parseOpcode(op[AVR_OP_READ_LO], avrConf.flash.read_lo);
-        parseOpcode(op[AVR_OP_READ_HI], avrConf.flash.read_hi);
-        parseOpcode(op[AVR_OP_LOADPAGE_LO], avrConf.flash.loadpage_lo);
-        parseOpcode(op[AVR_OP_LOADPAGE_HI], avrConf.flash.loadpage_hi);
-        parseOpcode(op[AVR_OP_LOAD_EXT_ADDR], avrConf.flash.load_ext_addr);
-        parseOpcode(op[AVR_OP_WRITEPAGE], avrConf.flash.writepage);
-    }
-
-    void setBuf(byte[] inBuf, int length) {
-        buf = new byte[length];
-        System.arraycopy(inBuf, 0, buf, 0, length);
-    }
-
-    void parseOpcode(OPCODE op, String[] mem) {
-        String tmpstr="";
-        String[] str;
-        int no = 31;
-
-        if(mem == null) {
-            return;
-        }
-
-        for(int i=0; i<mem.length; i++) {
-            tmpstr += mem[i] + " ";
-        }
-
-        // 最初の空白を取り除く
-        while(tmpstr.charAt(0) == ' ') {
-            tmpstr = tmpstr.substring(1);
-        }
-        str = tmpstr.split("[\\s]+");//空白がいくつあっても1区切りとする
-
-        for(int i=0; i<32; i++) {
-            if(str[i].charAt(0) == '0') {
-                op.bit[no].type  = AVR_CMDBIT_VALUE;
-                op.bit[no].bitno = no%8;
-                op.bit[no].value = 0;
-            } else if(str[i].charAt(0) == '1') {
-                op.bit[no].type  = AVR_CMDBIT_VALUE;
-                op.bit[no].bitno = no%8;
-                op.bit[no].value = 1;
-            } else if(str[i].charAt(0) == 'i') {
-                op.bit[no].type  = AVR_CMDBIT_INPUT;
-                op.bit[no].bitno = no%8;
-                op.bit[no].value = 0;
-            } else if(str[i].charAt(0) == 'o') {
-                op.bit[no].type  = AVR_CMDBIT_OUTPUT;
-                op.bit[no].bitno = no%8;
-                op.bit[no].value = 0;
-            } else if(str[i].charAt(0) == 'a') {
-                op.bit[no].type  = AVR_CMDBIT_ADDRESS;
-                op.bit[no].bitno = Integer.valueOf(str[i].substring(1));
-                op.bit[no].value = 0;
-            } else if(str[i].charAt(0) == 'x') {
-                op.bit[no].type  = AVR_CMDBIT_IGNORE;
-                op.bit[no].bitno = no%8;
-                op.bit[no].value = 0;
-            }
-            no--;
-        }
-    }
-
-    class OPCODE {
-        CMDBIT[] bit = new CMDBIT[32];
-        OPCODE() {
-            for(int i=0; i<32; i++) {
-                bit[i] = new CMDBIT();
-            }
-        }
-        class CMDBIT {
-            public int type;
-            public int bitno;
-            public int value;
-        }
-    }
-}
-
-/*
-typedef struct avrmem {
-  char desc[AVR_MEMDESCLEN];  // memory description ("flash", "eeprom", etc)
-  int paged;                  // page addressed (e.g. ATmega flash)
-  int size;                   // total memory size in bytes
-  int page_size;              // size of memory page (if page addressed)
-  int num_pages;              // number of pages (if page addressed)
-  unsigned int offset;        // offset in IO memory (ATxmega)
-  int min_write_delay;        // microseconds
-  int max_write_delay;        // microseconds
-  int pwroff_after_write;     // after this memory type is written to,
-                              // the device must be powered off and
-                              // back on, see errata
-                              // http://www.atmel.com/atmel/acrobat/doc1280.pdf
-  unsigned char readback[2];  // polled read-back values
-
-  int mode;                   // stk500 v2 xml file parameter
-  int delay;                  // stk500 v2 xml file parameter
-  int blocksize;              // stk500 v2 xml file parameter
-  int readsize;               // stk500 v2 xml file parameter
-  int pollindex;              // stk500 v2 xml file parameter
-
-  unsigned char * buf;        // pointer to memory buffer
-  OPCODE * op[AVR_OP_MAX];    // opcodes
-} AVRMEM;
-
-*/
-
 public class AvrConf {
     @SuppressWarnings("unused")
     private static final String TAG = AvrConf.class.getSimpleName();
@@ -482,7 +75,7 @@ public class AvrConf {
         }
     }
 
-    private byte[] createSignature(int sig1, int sig2, int sig3) {
+    static byte[] createSignature(int sig1, int sig2, int sig3) {
         return new byte[]{(byte)sig1, (byte)sig2, (byte) sig3};
     }
 
@@ -545,7 +138,7 @@ public class AvrConf {
                 0x41,
                 10,
                 256,
-                256); 
+                256);
     }
 
     private void setATmega1284P(){
@@ -752,7 +345,7 @@ public class AvrConf {
                 0x41,
                 6,
                 128,
-                256); 
+                256);
 
         fuse = new AVRConfMemFuse(
                 "",
@@ -885,21 +478,21 @@ part
     chip_erase_delay    = 9000;
     pgm_enable = "1 0 1 0 1 1 0 0 0 1 0 1 0 0 1 1",
                  "x x x x x x x x x x x x x x x x";
-                          
+
     chip_erase = "1 0 1 0 1 1 0 0 1 0 0 x x x x x",
                  "x x x x x x x x x x x x x x x x";
-                          
+
     timeout     = 200;
     stabdelay   = 100;
     cmdexedelay = 25;
-    synchloops  = 32;   
+    synchloops  = 32;
     bytedelay   = 0;
     pollindex   = 3;
-    pollvalue   = 0x53; 
-    predelay    = 1;      
+    pollvalue   = 0x53;
+    predelay    = 1;
     postdelay   = 1;
-    pollmethod  = 1;      
-                          
+    pollmethod  = 1;
+
     pp_controlstack =
         0x0E, 0x1E, 0x0F, 0x1F, 0x2E, 0x3E, 0x2F, 0x3F,
         0x4E, 0x5E, 0x4F, 0x5F, 0x6E, 0x7E, 0x6F, 0x7F,
@@ -920,20 +513,20 @@ part
     programfusepolltimeout = 5;
     programlockpulsewidth = 0;
     programlockpolltimeout = 5;
-    
-    memory "eeprom"     
+
+    memory "eeprom"
         paged           = no;
         page_size       = 4;
-        size            = 1024; 
-        min_write_delay = 3600; 
-        max_write_delay = 3600; 
+        size            = 1024;
+        min_write_delay = 3600;
+        max_write_delay = 3600;
         readback_p1     = 0xff;
         readback_p2     = 0xff;
         read = " 1 0 1 0 0 0 0 0",
                " 0 0 0 x x x a9 a8",
                " a7 a6 a5 a4 a3 a2 a1 a0",
                " o o o o o o o o";
-       
+
         write = " 1 1 0 0 0 0 0 0",
                 " 0 0 0 x x x a9 a8",
                 " a7 a6 a5 a4 a3 a2 a1 a0",
@@ -943,12 +536,12 @@ part
                       " 0 0 0 0 0 0 0 0",
                       " 0 0 0 0 0 0 a1 a0",
                       " i i i i i i i i";
-    
+
         writepage = " 1 1 0 0 0 0 1 0",
                     " 0 0 x x x x a9 a8",
                     " a7 a6 a5 a4 a3 a2 0 0",
                     " x x x x x x x x";
-       
+
         mode            = 0x41;
         delay           = 20;
         blocksize       = 4;

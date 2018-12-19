@@ -26,7 +26,6 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 import android.util.SparseArray;
-
 import com.physicaloid.BuildConfig;
 
 /*
@@ -255,7 +254,7 @@ public enum UsbAccessor {
 
     /**
      * Gets an USB permission if no permission
-     * 
+     *
      * @param device
      */
     public void getPermission(UsbDevice device) {

@@ -16,10 +16,10 @@
 
 package com.physicaloid.lib.framework;
 
-import com.physicaloid.lib.usb.driver.uart.UartConfig;
-import com.physicaloid.lib.usb.driver.uart.ReadLisener;
-
 import android.content.Context;
+import com.physicaloid.lib.usb.driver.uart.ReadLisener;
+import com.physicaloid.lib.usb.driver.uart.ReadListener;
+import com.physicaloid.lib.usb.driver.uart.UartConfig;
 
 public abstract class SerialCommunicator {
 
@@ -149,6 +149,13 @@ public abstract class SerialCommunicator {
      * Adds read listener
      * @param listener ReadListener
      */
+    abstract public void addReadListener(ReadListener listener);
+
+    /**
+     * Adds read listener
+     * @param listener ReadListener
+     */
+    @Deprecated
     abstract public void addReadListener(ReadLisener listener);
 
     /**
@@ -170,4 +177,22 @@ public abstract class SerialCommunicator {
      * Clears read buffer
      */
     abstract public void clearBuffer();
+
+    /**
+     *
+     * @return the type of physical connection as a string.
+     */
+    abstract public String getPhysicalConnectionName();
+
+    /**
+     *
+     * @return type of physical connection as a number
+     */
+    abstract public int getPhysicalConnectionType();
+
+    /**
+     *
+     * @param flag true to turn on debugging.
+     */
+    abstract public void setDebug(boolean flag);
 }
