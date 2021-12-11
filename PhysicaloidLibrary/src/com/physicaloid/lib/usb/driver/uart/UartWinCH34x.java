@@ -5,6 +5,7 @@ package com.physicaloid.lib.usb.driver.uart;
  * Reference source Linux Kernel
  */
 import android.content.Context;
+import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbRequest;
@@ -79,9 +80,9 @@ public class UartWinCH34x extends SerialCommunicator {
          * Config request types
          */
         // USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT
-        private static final byte REQTYPE_HOST_TO_INTERFACE = (byte) 0x41;
+        private static final byte REQTYPE_HOST_TO_INTERFACE = (byte) (UsbConstants.USB_TYPE_VENDOR | UsbConstants.USB_DIR_OUT);
         // USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN
-        private static final byte REQTYPE_INTERFACE_TO_HOST = (byte) 0xc1;
+        private static final byte REQTYPE_INTERFACE_TO_HOST = (byte) (UsbConstants.USB_TYPE_VENDOR | UsbConstants.USB_DIR_IN);
         @SuppressWarnings("unused")
         private static final byte REQTYPE_HOST_TO_DEVICE = (byte) 0x40;
         @SuppressWarnings("unused")
