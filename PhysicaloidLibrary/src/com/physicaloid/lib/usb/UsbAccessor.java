@@ -59,7 +59,11 @@ public enum UsbAccessor {
         }
 
         if(mPermissionIntent == null) {
-            mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent("USB_PERMISSION"), PendingIntent.FLAG_IMMUTABLE);
+            if(android.os.Build.VERSION.SDK_INT >= 31) {
+                mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent("USB_PERMISSION"), PendingIntent.FLAG_IMMUTABLE);
+            } else {
+                mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent("USB_PERMISSION"), 0);
+            }
         }
     }
 
