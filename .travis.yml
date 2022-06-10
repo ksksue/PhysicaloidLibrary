@@ -1,0 +1,32 @@
+language: android
+#install: ant deps
+
+android:
+
+  components:
+
+    # The BuildTools version used by the Physicaloid project
+    - build-tools-18.0.1
+
+    # The SDK version used to compile the Physicaloid project
+    - android-18
+
+    # List of the specified system images,
+    # to run emulator(s) during the tests
+    #- sys-img-armeabi-v7a-android-18
+    #- sys-img-armeabi-v7a-android-26
+
+before_install:
+  - wget --no-check-certificate https://www.apache.org/dist/ant/binaries/apache-ant-1.9.13-bin.tar.gz
+  - tar -xzvf apache-ant-1.9.13-bin.tar.gz
+  - export PATH=`pwd`/apache-ant-1.9.13/bin:$PATH
+  - echo $(ant -version)
+
+script:
+  - cd ./SampleProjects/PhysicaloidTest
+  - ant -v debug
+
+after_success:
+  - cp bin/PhysicaloidTest-debug.apk ./result.apk
+  - link=$(curl -F "file=@result.apk" https://file.io?expires=1m | jq --raw-output '.link')
+  - echo "Uploaded the result to  $link"

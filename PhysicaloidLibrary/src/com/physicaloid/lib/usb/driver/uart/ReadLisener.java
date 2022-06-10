@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.physicaloid.lib.usb.driver.uart;
 
-public interface ReadLisener {
-    public void onRead(int size);
+/**
+ * @deprecated
+ * use ReadListener instead, non-native speaker misspelling.
+ */
+@Deprecated
+public interface ReadLisener extends ReadListener {
 }

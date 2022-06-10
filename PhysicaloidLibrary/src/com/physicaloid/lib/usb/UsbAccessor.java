@@ -26,7 +26,6 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 import android.util.SparseArray;
-
 import com.physicaloid.BuildConfig;
 
 /*
@@ -60,7 +59,11 @@ public enum UsbAccessor {
         }
 
         if(mPermissionIntent == null) {
-            mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent("USB_PERMISSION"), 0);
+            if(android.os.Build.VERSION.SDK_INT >= 31) {
+                mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent("USB_PERMISSION"), PendingIntent.FLAG_IMMUTABLE);
+            } else {
+                mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent("USB_PERMISSION"), 0);
+            }
         }
     }
 
@@ -255,7 +258,7 @@ public enum UsbAccessor {
 
     /**
      * Gets an USB permission if no permission
-     * 
+     *
      * @param device
      */
     public void getPermission(UsbDevice device) {

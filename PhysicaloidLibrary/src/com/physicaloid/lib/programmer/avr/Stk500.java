@@ -28,14 +28,12 @@
 package com.physicaloid.lib.programmer.avr;
 
 import android.util.Log;
-
 import com.physicaloid.BuildConfig;
 import com.physicaloid.lib.framework.SerialCommunicator;
-
 import java.util.Arrays;
 
 class ProgrammerType{
-    
+
     /*
 typedef struct programmer_t {
   LISTID id;
@@ -138,7 +136,7 @@ class STK500Const{
     public static final byte Cmnd_STK_SET_PARAMETER     = (byte)0x40;  // ' '
     public static final byte Cmnd_STK_GET_PARAMETER     = (byte)0x41;  // ' '
     public static final byte Cmnd_STK_SET_DEVICE        = (byte)0x42;  // ' '
-    public static final byte Cmnd_STK_SET_DEVICE_EXT    = (byte)0x45;  // ' '                 
+    public static final byte Cmnd_STK_SET_DEVICE_EXT    = (byte)0x45;  // ' '
 
     public static final byte Cmnd_STK_ENTER_PROGMODE    = (byte)0x50;  // ' '
     public static final byte Cmnd_STK_LEAVE_PROGMODE    = (byte)0x51;  // ' '
@@ -226,6 +224,7 @@ public class Stk500 extends UploadProtocol{
         mComm = comm;
     }
 
+    // Warning exporting non-public type through public API
     public void setConfig(AvrConf avrConf, AVRMem avrMem) {
         mAVRConf = avrConf;
         mAVRMem  = avrMem;
@@ -294,7 +293,7 @@ public class Stk500 extends UploadProtocol{
         }
         return retval;
     }
-    
+
     private int getsync() {
         byte[] buf  = new byte[32];
         byte[] resp = new byte[32];
@@ -304,7 +303,7 @@ public class Stk500 extends UploadProtocol{
         buf[1] = STK500Const.Sync_CRC_EOP;
 
         /*
-         * First send and drain a few times to get rid of line noise 
+         * First send and drain a few times to get rid of line noise
          */
 
         send(buf, 2);
@@ -384,7 +383,7 @@ public class Stk500 extends UploadProtocol{
     }
 
     public void enable() {
-        
+
     }
 
     public int initialize() {
@@ -392,8 +391,8 @@ public class Stk500 extends UploadProtocol{
         int tries;
         int[] majArr={0};
         int[] minArr={0};
-        int maj=0;
-        int min=0;
+        int maj;
+        int min;
         int rc;
         int n_extparms;
 
@@ -705,12 +704,12 @@ public class Stk500 extends UploadProtocol{
         int memtype;
         int addr;
         int a_div;
-        int block_size=0;
+        int block_size;
         int tries;
-        long n; 
+        long n;
         int i;
         boolean flash;
-        boolean bRetry = true;
+        boolean bRetry;
 
         if (page_size == 0) {
             // MIB510 uses page size of 256 bytes
@@ -858,9 +857,9 @@ public class Stk500 extends UploadProtocol{
           }
           else if (buf[0] != STK500Const.Resp_STK_INSYNC) {
               Log.e(TAG,
-                "STK500.disable(): protocol error, expect="+toHexStr(STK500Const.Resp_STK_INSYNC)+", resp="+toHexStr((byte)buf[0]));
-              return; 
-          } 
+                "STK500.disable(): protocol error, expect="+toHexStr(STK500Const.Resp_STK_INSYNC)+", resp="+toHexStr(/* redundant... (byte) */ buf[0]));
+              return;
+          }
       }
       if (recv(buf, 1) < 0) { return; }
       if (buf[0] == STK500Const.Resp_STK_OK) { Log.d(TAG,"disable OK"); return; }
@@ -871,7 +870,7 @@ public class Stk500 extends UploadProtocol{
 
       Log.e(TAG, "STK500.disable(): unknown response="+toHexStr(buf[0]));
 
-      return;
+      // not nessesary return;
     }
 
     public void close() {
